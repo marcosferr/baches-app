@@ -1,8 +1,50 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from "bcrypt";
-import type { NextAuthOptions } from "next-auth";
-import prisma from "@/lib/prisma";
+import NextAuth from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+import { compare, hash } from "bcrypt"
+import type { NextAuthOptions } from "next-auth"
+
+// Mock users database - in a real app, this would be in a database
+const users = [
+  {
+    id: "admin-1",
+    name: "Admin User",
+    email: "admin@example.com",
+    password: "$2b$10$8OxDEuDS1WFsGiGpUK.YLOcSuLkCDgJIPjuSOULGqJ3FIQhkbwYdC", // "adminpassword"
+    role: "admin",
+  },
+  {
+    id: "user-1",
+    name: "Regular User",
+    email: "user@example.com",
+    password: "$2b$10$8OxDEuDS1WFsGiGpUK.YLOcSuLkCDgJIPjuSOULGqJ3FIQhkbwYdC", // "userpassword"
+    role: "citizen",
+  },
+]
+
+// Helper function to find a user by email
+const findUserByEmail = (email: string) => {
+  return users.find((user) => user.email.toLowerCase() === email.toLowerCase())
+}
+
+// Helper function to add a new user
+export const addUser = async (name: string, email: string, password: string) => {
+  const existingUser = findUserByEmail(email)
+  if (existingUser) {
+    return null
+  }
+
+  const hashedPassword = await hash(password, 10)
+  const newUser = {
+    id: `user-${Date.now()}`,
+    name,
+    email,
+    password: hashedPassword,
+    role: "citizen",
+  }
+
+  users.push(newUser)
+  return newUser
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,23 +56,17 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-
+        const user = findUserByEmail(credentials.email)
         if (!user) {
-          return null;
+          return null
         }
 
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password
-        );
+        const isPasswordValid = await compare(credentials.password, user.password)
         if (!isPasswordValid) {
-          return null;
+          return null
         }
 
         return {
@@ -38,24 +74,24 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
-        };
+        }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
-        token.id = user.id;
+        token.role = user.role
+        token.id = user.id
       }
-      return token;
+      return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as "ADMIN" | "CITIZEN";
-        session.user.id = token.id as string;
+        session.user.role = token.role as "admin" | "citizen"
+        session.user.id = token.id as string
       }
-      return session;
+      return session
     },
   },
   pages: {
@@ -66,10 +102,15 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
-};
+}
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }
+
+// Export a function to register new users (to be used in the register API route)
+// export const registerUser = async (name: string, email: string, password: string) => {
+//   return await addUser(name, email, password)
+// }
+

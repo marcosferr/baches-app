@@ -1,64 +1,50 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
-import {
-  MapPin,
-  User,
-  Mail,
-  Lock,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { MapPin, User, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
     // Basic validation
     if (!name || !email || !password || !confirmPassword) {
-      setError("Por favor completa todos los campos.");
-      return;
+      setError("Por favor completa todos los campos.")
+      return
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
-      return;
+      setError("Las contraseñas no coinciden.")
+      return
     }
 
     if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
-      return;
+      setError("La contraseña debe tener al menos 8 caracteres.")
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       // Register the user
@@ -68,12 +54,12 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email, password }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al registrar usuario");
+        throw new Error(data.error || "Error al registrar usuario")
       }
 
       // If registration is successful, sign in the user
@@ -81,29 +67,25 @@ export default function RegisterPage() {
         redirect: false,
         email,
         password,
-      });
+      })
 
       if (result?.error) {
-        throw new Error("Error al iniciar sesión automáticamente");
+        throw new Error("Error al iniciar sesión automáticamente")
       }
 
-      setSuccess(true);
+      setSuccess(true)
 
       // Redirect after a short delay to show success message
       setTimeout(() => {
-        router.push("/");
-      }, 2000);
+        router.push("/")
+      }, 2000)
     } catch (err) {
-      console.error("Registration error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Ocurrió un error al registrar. Por favor intenta nuevamente."
-      );
+      console.error("Registration error:", err)
+      setError(err instanceof Error ? err.message : "Ocurrió un error al registrar. Por favor intenta nuevamente.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   if (success) {
     return (
@@ -116,14 +98,13 @@ export default function RegisterPage() {
               </div>
               <h2 className="text-2xl font-semibold">¡Registro exitoso!</h2>
               <p className="text-muted-foreground">
-                Tu cuenta ha sido creada correctamente. Serás redirigido en unos
-                segundos...
+                Tu cuenta ha sido creada correctamente. Serás redirigido en unos segundos...
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -133,20 +114,14 @@ export default function RegisterPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-500">
             <MapPin className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Crear una cuenta
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Regístrate para reportar baches y mejorar tu ciudad
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">Crear una cuenta</h1>
+          <p className="text-sm text-muted-foreground">Regístrate para reportar baches y mejorar tu ciudad</p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Registro de Ciudadano</CardTitle>
-            <CardDescription>
-              Ingresa tus datos para crear una cuenta
-            </CardDescription>
+            <CardDescription>Ingresa tus datos para crear una cuenta</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -200,9 +175,7 @@ export default function RegisterPage() {
                     minLength={8}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  La contraseña debe tener al menos 8 caracteres
-                </p>
+                <p className="text-xs text-muted-foreground">La contraseña debe tener al menos 8 caracteres</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirmar contraseña</Label>
@@ -225,10 +198,7 @@ export default function RegisterPage() {
               </Button>
               <div className="text-center text-sm">
                 ¿Ya tienes una cuenta?{" "}
-                <Link
-                  href="/login"
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
+                <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
                   Iniciar sesión
                 </Link>
               </div>
@@ -237,5 +207,6 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }
+

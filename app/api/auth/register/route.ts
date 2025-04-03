@@ -1,60 +1,56 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { hash } from "bcrypt";
+import { NextResponse } from "next/server"
+import { hash } from "bcrypt"
+import { prisma } from "@/lib/prisma"
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password } = await request.json()
 
-    // Validate the data
     if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
-
-    // Check if user already exists
+    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+      where: {
+        email: email.toLowerCase(),
+      },
+    })
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "Email already in use" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Email already in use" }, { status: 409 })
     }
 
-    // Hash the password
-    const hashedPassword = await hash(password, 10);
+    // Hash password
+    const hashedPassword = await hash(password, 10)
 
-    // Create the user
+    // Create user
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: email.toLowerCase(),
         password: hashedPassword,
-        role: "CITIZEN",
+        role: "CITIZEN", // Default role
       },
-    });
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar: true,
+      },
+    })
 
-    // Return the user without the password
-    const { password: _, ...userWithoutPassword } = user;
-
-    return NextResponse.json(userWithoutPassword, { status: 201 });
-  } catch (error) {
-    console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+      {
+        success: true,
+        user,
+      },
+      { status: 201 },
+    )
+  } catch (error) {
+    console.error("[REGISTRATION_ERROR]", error)
+    return NextResponse.json({ error: "An error occurred during registration" }, { status: 500 })
   }
 }
+

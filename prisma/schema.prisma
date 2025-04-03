@@ -2,47 +2,102 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String
-    email         String    @unique
-    password      String
-    role          String    @default("CITIZEN")
-    emailVerified DateTime?
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
-    reports       Report[]
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(CITIZEN)
+  avatar        String?
+  reports       Report[]
+  comments      Comment[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  notificationPreferences NotificationPreference?
 }
 
 model Report {
-    id          String   @id @default(cuid())
-    title       String
-    description String?
-    latitude    Float
-    longitude   Float
-    status      Status   @default(PENDING)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    userId      String
-    user        User     @relation(fields: [userId], references: [id])
+  id          String    @id @default(cuid())
+  picture     String
+  description String
+  severity    Severity
+  status      Status    @default(PENDING)
+  latitude    Float
+  longitude   Float
+  address     String?
+  comments    Comment[]
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  report    Report   @relation(fields: [reportId], references: [id])
+  reportId  String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  title      String
+  message    String
+  type       NotificationType
+  read       Boolean          @default(false)
+  relatedId  String?
+  user       User             @relation(fields: [userId], references: [id])
+  userId     String
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model NotificationPreference {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  reportUpdates Boolean  @default(true)
+  comments     Boolean  @default(true)
+  email        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum Role {
-    ADMIN
-    CITIZEN
+  ADMIN
+  CITIZEN
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum Status {
-    PENDING
-    IN_PROGRESS
-    COMPLETED
-    REJECTED
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
 }
+
+enum NotificationType {
+  REPORT_STATUS
+  COMMENT
+  APPROVAL
+  PRIORITY
+}
+

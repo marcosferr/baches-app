@@ -1,34 +1,40 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { Filter, Layers, Info, MapPin, List, MapIcon, X } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
-import { ApiService } from "@/lib/api-service"
-import { PublicMapComponent } from "./public-map-component"
-import { FallbackMap } from "./fallback-map"
-import { ReportListItem } from "./report-list-item"
-import { ReportDetailView } from "./report-detail-view"
-import type { Report } from "@/types"
+import { useState, useEffect, useRef } from "react";
+import { Filter, Layers, Info, MapPin, List, MapIcon, X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { ApiService } from "@/lib/api-service";
+import { PublicMapComponent } from "./public-map-component";
+import { FallbackMap } from "./fallback-map";
+import { ReportListItem } from "./report-list-item";
+import { ReportDetailView } from "./report-detail-view";
+import type { Report } from "@/types";
+import Head from "next/head";
 
 export default function PublicMapView() {
-  const { toast } = useToast()
-  const isMobile = useMobile()
-  const [reports, setReports] = useState<Report[]>([])
-  const [filteredReports, setFilteredReports] = useState<Report[]>([])
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [mapError, setMapError] = useState(false)
+  const { toast } = useToast();
+  const isMobile = useMobile();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mapError, setMapError] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [filters, setFilters] = useState({
     pending: true,
     in_progress: true,
@@ -36,45 +42,104 @@ export default function PublicMapView() {
     low: true,
     medium: true,
     high: true,
-  })
-  const [view, setView] = useState<"map" | "list">("map")
-  const mapRef = useRef<any>(null)
+  });
+  const [view, setView] = useState<"map" | "list">("map");
+  const mapRef = useRef<any>(null);
+  const leafletLoadedRef = useRef(false);
 
   // Fetch reports
   useEffect(() => {
     const fetchReports = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const fetchedReports = await ApiService.getReports()
-        setReports(fetchedReports)
-        setFilteredReports(fetchedReports)
+        const fetchedReports = await ApiService.getReports();
+        setReports(fetchedReports);
+        setFilteredReports(fetchedReports);
       } catch (error) {
-        console.error("Error fetching reports:", error)
+        console.error("Error fetching reports:", error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los reportes. Por favor intenta nuevamente.",
+          description:
+            "No se pudieron cargar los reportes. Por favor intenta nuevamente.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchReports()
-  }, [toast])
+    fetchReports();
+  }, [toast]);
 
-  // Check if Leaflet is available
+  // Load Leaflet library
   useEffect(() => {
-    // Set a timeout to check if Leaflet loaded
-    const timer = setTimeout(() => {
-      if (!window.L) {
-        setMapError(true)
-        console.error("Leaflet failed to load")
-      }
-    }, 5000) // Give it 5 seconds to load
+    // Don't try to load it multiple times
+    if (leafletLoadedRef.current) return;
 
-    return () => clearTimeout(timer)
-  }, [])
+    const loadDependencies = async () => {
+      try {
+        // Check if Leaflet is already available
+        if (typeof window !== "undefined" && window.L) {
+          setMapLoaded(true);
+          leafletLoadedRef.current = true;
+          return;
+        }
+
+        // Simple function to load a script
+        const loadScript = (src: string): Promise<void> => {
+          return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = src;
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () =>
+              reject(new Error(`Failed to load script: ${src}`));
+            document.body.appendChild(script);
+          });
+        };
+
+        // Simple function to load a stylesheet
+        const loadStylesheet = (href: string): void => {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = href;
+          document.head.appendChild(link);
+        };
+
+        // Load all required stylesheets
+        loadStylesheet("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
+
+        // First load Leaflet
+        await loadScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
+
+        // Give a short delay to ensure Leaflet is fully initialized
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        if (!window.L) {
+          throw new Error("Leaflet failed to initialize properly");
+        }
+
+        console.log("Leaflet loaded successfully");
+        setMapLoaded(true);
+        leafletLoadedRef.current = true;
+      } catch (error) {
+        console.error("Error loading map libraries:", error);
+        setMapError(true);
+      }
+    };
+
+    loadDependencies();
+
+    // Set a timeout as a fallback
+    const timer = setTimeout(() => {
+      if (!leafletLoadedRef.current) {
+        console.error("Map loading timed out");
+        setMapError(true);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Apply filters
   useEffect(() => {
@@ -82,46 +147,46 @@ export default function PublicMapView() {
       const statusMatch =
         (report.status === "pending" && filters.pending) ||
         (report.status === "in_progress" && filters.in_progress) ||
-        (report.status === "resolved" && filters.resolved)
+        (report.status === "resolved" && filters.resolved);
 
       const severityMatch =
         (report.severity === "low" && filters.low) ||
         (report.severity === "medium" && filters.medium) ||
-        (report.severity === "high" && filters.high)
+        (report.severity === "high" && filters.high);
 
-      return statusMatch && severityMatch
-    })
+      return statusMatch && severityMatch;
+    });
 
-    setFilteredReports(filtered)
-  }, [filters, reports])
+    setFilteredReports(filtered);
+  }, [filters, reports]);
 
   // Handle filter change
   const handleFilterChange = (key: keyof typeof filters) => {
     setFilters((prev) => ({
       ...prev,
       [key]: !prev[key],
-    }))
-  }
+    }));
+  };
 
   // Handle report selection
   const handleReportSelect = (report: Report) => {
-    setSelectedReport(report)
+    setSelectedReport(report);
 
     // If on mobile and in list view, switch to map view to see the marker
     if (isMobile && view === "list") {
-      setView("map")
+      setView("map");
     }
 
     // Center map on selected report
     if (mapRef.current && report.location) {
-      mapRef.current.flyTo([report.location.lat, report.location.lng], 16)
+      mapRef.current.flyTo([report.location.lat, report.location.lng], 16);
     }
-  }
+  };
 
   // Close report details
   const handleCloseDetails = () => {
-    setSelectedReport(null)
-  }
+    setSelectedReport(null);
+  };
 
   // Filter UI - different for mobile and desktop
   const FilterUI = () => (
@@ -130,7 +195,11 @@ export default function PublicMapView() {
         <h4 className="font-medium">Estado</h4>
         <div className="grid gap-2">
           <div className="flex items-center space-x-2">
-            <Checkbox id="pending" checked={filters.pending} onCheckedChange={() => handleFilterChange("pending")} />
+            <Checkbox
+              id="pending"
+              checked={filters.pending}
+              onCheckedChange={() => handleFilterChange("pending")}
+            />
             <Label htmlFor="pending" className="font-normal">
               Pendiente
             </Label>
@@ -146,7 +215,11 @@ export default function PublicMapView() {
             </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox id="resolved" checked={filters.resolved} onCheckedChange={() => handleFilterChange("resolved")} />
+            <Checkbox
+              id="resolved"
+              checked={filters.resolved}
+              onCheckedChange={() => handleFilterChange("resolved")}
+            />
             <Label htmlFor="resolved" className="font-normal">
               Resuelto
             </Label>
@@ -157,19 +230,31 @@ export default function PublicMapView() {
         <h4 className="font-medium">Gravedad</h4>
         <div className="grid gap-2">
           <div className="flex items-center space-x-2">
-            <Checkbox id="low" checked={filters.low} onCheckedChange={() => handleFilterChange("low")} />
+            <Checkbox
+              id="low"
+              checked={filters.low}
+              onCheckedChange={() => handleFilterChange("low")}
+            />
             <Label htmlFor="low" className="font-normal">
               Leve
             </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox id="medium" checked={filters.medium} onCheckedChange={() => handleFilterChange("medium")} />
+            <Checkbox
+              id="medium"
+              checked={filters.medium}
+              onCheckedChange={() => handleFilterChange("medium")}
+            />
             <Label htmlFor="medium" className="font-normal">
               Moderado
             </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox id="high" checked={filters.high} onCheckedChange={() => handleFilterChange("high")} />
+            <Checkbox
+              id="high"
+              checked={filters.high}
+              onCheckedChange={() => handleFilterChange("high")}
+            />
             <Label htmlFor="high" className="font-normal">
               Grave
             </Label>
@@ -177,12 +262,28 @@ export default function PublicMapView() {
         </div>
       </div>
     </div>
-  )
+  );
 
   // Render map or fallback
   const renderMap = () => {
     if (mapError) {
-      return <FallbackMap reports={filteredReports} onReportSelect={handleReportSelect} />
+      return (
+        <FallbackMap
+          reports={filteredReports}
+          onReportSelect={handleReportSelect}
+        />
+      );
+    }
+
+    if (!mapLoaded) {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="text-center">
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-primary mx-auto"></div>
+            <p className="text-muted-foreground">Cargando mapa...</p>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -192,19 +293,25 @@ export default function PublicMapView() {
         selectedReport={selectedReport}
         mapRef={mapRef}
       />
-    )
-  }
+    );
+  };
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b p-4">
-        <h1 className="text-xl font-bold md:text-2xl">Mapa Público de Baches</h1>
+        <h1 className="text-xl font-bold md:text-2xl">
+          Mapa Público de Baches
+        </h1>
         <div className="flex gap-2">
           {isMobile ? (
             <>
               {/* Mobile view switcher */}
-              <Tabs value={view} onValueChange={(v) => setView(v as "map" | "list")} className="w-[180px]">
+              <Tabs
+                value={view}
+                onValueChange={(v) => setView(v as "map" | "list")}
+                className="w-[180px]"
+              >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="map">
                     <MapIcon className="mr-2 h-4 w-4" />
@@ -269,11 +376,21 @@ export default function PublicMapView() {
         {/* Mobile views */}
         {isMobile && (
           <>
-            <div className={`h-full w-full ${view === "map" ? "block" : "hidden"}`}>{renderMap()}</div>
-            <div className={`h-full w-full ${view === "list" ? "block" : "hidden"}`}>
+            <div
+              className={`h-full w-full ${view === "map" ? "block" : "hidden"}`}
+            >
+              {renderMap()}
+            </div>
+            <div
+              className={`h-full w-full ${
+                view === "list" ? "block" : "hidden"
+              }`}
+            >
               <ScrollArea className="h-full">
                 <div className="p-4">
-                  <h2 className="mb-4 text-lg font-semibold">Reportes ({filteredReports.length})</h2>
+                  <h2 className="mb-4 text-lg font-semibold">
+                    Reportes ({filteredReports.length})
+                  </h2>
                   <div className="space-y-3">
                     {filteredReports.map((report) => (
                       <ReportListItem
@@ -286,9 +403,12 @@ export default function PublicMapView() {
                     {filteredReports.length === 0 && (
                       <div className="rounded-lg border border-dashed p-8 text-center">
                         <MapPin className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-                        <h3 className="mb-1 text-lg font-medium">No hay reportes</h3>
+                        <h3 className="mb-1 text-lg font-medium">
+                          No hay reportes
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          No se encontraron reportes con los filtros seleccionados.
+                          No se encontraron reportes con los filtros
+                          seleccionados.
                         </p>
                       </div>
                     )}
@@ -336,12 +456,21 @@ export default function PublicMapView() {
         {selectedReport && (
           <>
             {isMobile ? (
-              <Sheet open={!!selectedReport} onOpenChange={(open) => !open && setSelectedReport(null)}>
+              <Sheet
+                open={!!selectedReport}
+                onOpenChange={(open) => !open && setSelectedReport(null)}
+              >
                 <SheetContent side="bottom" className="h-[80vh] p-0">
                   <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b p-3">
-                      <h3 className="text-lg font-semibold">Detalles del Reporte</h3>
-                      <Button variant="ghost" size="icon" onClick={handleCloseDetails}>
+                      <h3 className="text-lg font-semibold">
+                        Detalles del Reporte
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCloseDetails}
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -356,8 +485,14 @@ export default function PublicMapView() {
                 <Card>
                   <CardContent className="p-0">
                     <div className="flex items-center justify-between border-b p-3">
-                      <h3 className="text-lg font-semibold">Detalles del Reporte</h3>
-                      <Button variant="ghost" size="icon" onClick={handleCloseDetails}>
+                      <h3 className="text-lg font-semibold">
+                        Detalles del Reporte
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCloseDetails}
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -372,6 +507,5 @@ export default function PublicMapView() {
         )}
       </div>
     </div>
-  )
+  );
 }
-

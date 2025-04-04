@@ -1,18 +1,22 @@
-import { NextResponse } from "next/server"
-import { getToken } from "next-auth/jwt"
-import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 
 // Debug mode - set to true to disable route protection for development
-const DEBUG_DISABLE_AUTH = false
+const DEBUG_DISABLE_AUTH = true;
 
 export async function middleware(request: NextRequest) {
   // Skip auth checks if debug mode is enabled
   if (DEBUG_DISABLE_AUTH) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
-  const token = await getToken({ req: request })
-  const isAuthenticated = !!token
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const isAuthenticated = !!token;
 
   // Define protected paths and their allowed roles
   const adminPaths = [
@@ -22,42 +26,51 @@ export async function middleware(request: NextRequest) {
     "/admin/map",
     "/admin/notifications",
     "/admin/settings",
-  ]
-  const authPaths = ["/report", "/my-reports", "/notifications", "/profile"]
-  const authPages = ["/login", "/register", "/forgot-password", "/reset-password"]
+  ];
+  const authPaths = ["/report", "/my-reports", "/notifications", "/profile"];
+  const authPages = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ];
 
-  const path = request.nextUrl.pathname
+  const path = request.nextUrl.pathname;
 
   // Check if the path is an admin path
-  const isAdminPath = adminPaths.some((ap) => path.startsWith(ap))
+  const isAdminPath = adminPaths.some((ap) => path.startsWith(ap));
 
   // Check if the path is an auth path
-  const isAuthPath = authPaths.some((ap) => path === ap)
+  const isAuthPath = authPaths.some((ap) => path === ap);
 
   // Check if the path is an auth page
-  const isAuthPage = authPages.some((ap) => path.startsWith(ap))
+  const isAuthPage = authPages.some((ap) => path.startsWith(ap));
 
   // If the user is trying to access an admin path but is not an admin
   if (isAdminPath && (!isAuthenticated || token?.role !== "admin")) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    const url = new URL("/login", request.url);
+    url.searchParams.set("callbackUrl", encodeURI(request.url));
+    return NextResponse.redirect(url);
   }
 
   // If the user is trying to access an auth path but is not authenticated
   if (isAuthPath && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    const url = new URL("/login", request.url);
+    url.searchParams.set("callbackUrl", encodeURI(request.url));
+    return NextResponse.redirect(url);
   }
 
   // If the user is authenticated and trying to access an auth page
   if (isAuthPage && isAuthenticated) {
     // Redirect admin to admin dashboard, regular users to home
     if (token?.role === "admin") {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url))
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     } else {
-      return NextResponse.redirect(new URL("/", request.url))
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 // See "Matching Paths" below to learn more
@@ -73,5 +86,4 @@ export const config = {
     "/forgot-password",
     "/reset-password/:path*",
   ],
-}
-
+};

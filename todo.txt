@@ -4,4 +4,9 @@ Conectar APIs Backend con rutas
 - Mapa Baches con Comentarios 
 - Mapa público sin capacidad de poder poner Comentarios
 - Exportar reporte Admin 
+- Entrar a la vista de un solo reporte
+- Dejar comentarios en un reporte 
+- Filtrado de reportes no aprovados
+- Aprobado por parte de autoridades
+- manejo de reportes mediante S3
 

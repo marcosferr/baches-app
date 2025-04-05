@@ -89,9 +89,9 @@ export const ApiService = {
         picture: reportData.picture,
         description: reportData.description,
         severity: reportData.severity,
-        latitude: reportData.location.lat,
-        longitude: reportData.location.lng,
-        address: reportData.location.address,
+        latitude: reportData.latitude, // Update to use direct latitude property
+        longitude: reportData.longitude, // Update to use direct longitude property
+        address: reportData.address,
       });
     } catch (error) {
       console.error("Error creating report:", error);

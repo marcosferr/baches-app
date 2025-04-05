@@ -57,11 +57,11 @@ export default function MapaReportes() {
       const createCustomIcon = (status: string) => {
         let color = "gray";
 
-        if (status === "pending") {
+        if (status === "PENDING") {
           color = "orange";
-        } else if (status === "in_progress") {
+        } else if (status === "IN_PROGRESS") {
           color = "blue";
-        } else if (status === "resolved") {
+        } else if (status === "RESOLVED") {
           color = "green";
         }
 
@@ -79,7 +79,7 @@ export default function MapaReportes() {
       // Add markers for each report if reports are loaded
       if (reports.length > 0) {
         reports.forEach((report) => {
-          const marker = L.marker([report.location.lat, report.location.lng], {
+          const marker = L.marker([report.latitude, report.longitude], {
             icon: createCustomIcon(report.status),
           }).addTo(map);
 
@@ -91,7 +91,7 @@ export default function MapaReportes() {
               <p><strong>Severidad:</strong> ${report.severity}</p>
               <p><strong>Estado:</strong> ${report.status}</p>
               <p><strong>Fecha:</strong> ${new Date(
-                report.date_created
+                report.createdAt
               ).toLocaleDateString("es-PY")}</p>
             </div>
           `);
@@ -132,11 +132,11 @@ export default function MapaReportes() {
       const createCustomIcon = (status: string) => {
         let color = "gray";
 
-        if (status === "pending") {
+        if (status === "PENDING") {
           color = "orange";
-        } else if (status === "in_progress") {
+        } else if (status === "IN_PROGRESS") {
           color = "blue";
-        } else if (status === "resolved") {
+        } else if (status === "RESOLVED") {
           color = "green";
         }
 
@@ -153,7 +153,7 @@ export default function MapaReportes() {
 
       // Add new markers
       reports.forEach((report) => {
-        const marker = L.marker([report.location.lat, report.location.lng], {
+        const marker = L.marker([report.latitude, report.longitude], {
           icon: createCustomIcon(report.status),
         }).addTo(mapInstanceRef.current);
 
@@ -165,7 +165,7 @@ export default function MapaReportes() {
             <p><strong>Severidad:</strong> ${report.severity}</p>
             <p><strong>Estado:</strong> ${report.status}</p>
             <p><strong>Fecha:</strong> ${new Date(
-              report.date_created
+              report.createdAt
             ).toLocaleDateString("es-PY")}</p>
           </div>
         `);

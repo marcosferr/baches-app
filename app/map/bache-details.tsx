@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { MapPin, Calendar, MessageSquare } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -86,10 +85,6 @@ export function BacheDetails({ bache, onClose }: BacheDetailsProps) {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Detalles del Reporte</DialogTitle>
-          <DialogClose className="absolute right-4 top-4">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

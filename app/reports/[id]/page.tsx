@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
@@ -39,11 +39,15 @@ export default function ReportDetailPage({
   const [report, setReport] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Unwrap params using React.use()
+  const unwrappedParams = use(params);
+  const reportId = unwrappedParams.id;
+
   useEffect(() => {
     const fetchReport = async () => {
       setIsLoading(true);
       try {
-        const reportData = await ApiService.getReportById(params.id);
+        const reportData = await ApiService.getReportById(reportId);
         setReport(reportData);
       } catch (error) {
         console.error("Error fetching report:", error);
@@ -59,7 +63,7 @@ export default function ReportDetailPage({
     };
 
     fetchReport();
-  }, [params.id, router, toast]);
+  }, [reportId, router, toast]);
 
   const getSeverityLabel = (severity: string) => {
     switch (severity) {

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Script from "next/script";
 
 interface ReportMapProps {
@@ -20,11 +20,33 @@ export function ReportMap({
   const markerRef = useRef<any>(null);
 
   // Initialize map after Leaflet script is loaded
-  const initializeMap = () => {
-    if (!mapRef.current || !window.L || isMapInitialized) return;
+  const initializeMap = useCallback(() => {
+    // If map is already initialized, clean it up first
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    if (markerRef.current) {
+      markerRef.current = null;
+    }
+
+    // Reset the initialization state
+    setIsMapInitialized(false);
+
+    if (!mapRef.current || !window.L) return;
 
     try {
       const L = window.L;
+
+      // Check if the map container already has a Leaflet instance
+      if ((mapRef.current as any)._leaflet_id) {
+        // If it does, clean it up
+        console.log(
+          "Map container already has a Leaflet instance, cleaning up..."
+        );
+        delete (mapRef.current as any)._leaflet_id;
+      }
 
       // Create map instance with default coordinates for Encarnación, Paraguay
       const map = L.map(mapRef.current).setView([-27.3364, -55.8675], 14);
@@ -62,12 +84,20 @@ export function ReportMap({
     } catch (error) {
       console.error("Error initializing map:", error);
     }
-  };
+  }, [selectedLocation, onLocationSelect]);
 
   // Handle script load event
   const handleScriptLoad = () => {
     initializeMap();
   };
+
+  // Initialize map when component mounts
+  useEffect(() => {
+    // Check if Leaflet is already loaded
+    if (window.L) {
+      initializeMap();
+    }
+  }, [initializeMap]);
 
   // Update marker when selectedLocation changes
   useEffect(() => {
@@ -111,6 +141,18 @@ export function ReportMap({
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+
+      if (markerRef.current) {
+        markerRef.current = null;
+      }
+
+      // Reset the initialization state
+      setIsMapInitialized(false);
+
+      // Clean up the Leaflet ID from the map container if it exists
+      if (mapRef.current && (mapRef.current as any)._leaflet_id) {
+        delete (mapRef.current as any)._leaflet_id;
+      }
     };
   }, []);
 
@@ -138,7 +180,11 @@ export function ReportMap({
             <p>Cargando mapa...</p>
           </div>
         )}
-        <div ref={mapRef} className="h-full w-full"></div>
+        <div
+          ref={mapRef}
+          className="h-full w-full"
+          id={`map-container-${Date.now()}`}
+        ></div>
       </div>
     </>
   );

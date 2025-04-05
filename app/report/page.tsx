@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Camera,
   Upload,
@@ -62,12 +62,18 @@ export default function ReportPage() {
     }
   };
 
-  const handleLocationSelect = (lat: number, lng: number) => {
+  const handleLocationSelect = useCallback((lat: number, lng: number) => {
     setLocation({ lat, lng });
-  };
+  }, []);
 
-  const handleGetCurrentLocation = () => {
+  const handleGetCurrentLocation = useCallback(() => {
     if (typeof window !== "undefined" && navigator.geolocation) {
+      // Only set the active tab if we're not already in the "current" tab
+      if (activeTab !== "current") {
+        setActiveTab("current");
+      }
+
+      // Get the geolocation
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const newLocation = {
@@ -75,7 +81,6 @@ export default function ReportPage() {
             lng: position.coords.longitude,
           };
           setLocation(newLocation);
-          setActiveTab("current");
         },
         (error) => {
           console.error("Error obteniendo la ubicación:", error);
@@ -88,7 +93,20 @@ export default function ReportPage() {
         }
       );
     }
-  };
+  }, [toast, setLocation, setActiveTab, activeTab]);
+
+  // Handle tab changes
+  useEffect(() => {
+    // If switching to "current" tab, try to get current location
+    if (activeTab === "current") {
+      // Small delay to ensure the tab content is rendered
+      setTimeout(() => {
+        if (!location) {
+          handleGetCurrentLocation();
+        }
+      }, 100);
+    }
+  }, [activeTab, location, handleGetCurrentLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -291,6 +309,7 @@ export default function ReportPage() {
                     <TabsContent value="search" className="space-y-4">
                       <div className="h-[300px] w-full overflow-hidden rounded-lg border">
                         <ReportMap
+                          key="search-map"
                           onLocationSelect={handleLocationSelect}
                           selectedLocation={location}
                         />
@@ -304,6 +323,7 @@ export default function ReportPage() {
                     <TabsContent value="current" className="space-y-4">
                       <div className="h-[300px] w-full overflow-hidden rounded-lg border">
                         <ReportMap
+                          key="current-map"
                           onLocationSelect={handleLocationSelect}
                           selectedLocation={location}
                         />

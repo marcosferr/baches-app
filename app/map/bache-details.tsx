@@ -1,135 +1,174 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { X, ThumbsUp, ThumbsDown, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { ReportComments } from "@/components/report-comments"
-import type { Report } from "@/types"
+import { useState } from "react";
+import { X, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ReportComments } from "@/components/report-comments";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { MapPin, Calendar, MessageSquare } from "lucide-react";
+import type { Report } from "@prisma/client";
+
+// Function to format dates
+const formatDate = (dateString: Date | string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("es-PY", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+// Status mapping helper
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "PENDING":
+      return { label: "Pendiente", color: "bg-orange-500" };
+    case "IN_PROGRESS":
+      return { label: "En Proceso", color: "bg-blue-500" };
+    case "RESOLVED":
+      return { label: "Resuelto", color: "bg-green-500" };
+    case "REJECTED":
+      return { label: "Rechazado", color: "bg-red-500" };
+    default:
+      return { label: status, color: "bg-gray-500" };
+  }
+};
+
+// Severity mapping helper
+const getSeverityLabel = (severity: string) => {
+  switch (severity) {
+    case "LOW":
+      return {
+        label: "Leve",
+        color: "border-yellow-300 text-yellow-600 dark:text-yellow-400",
+      };
+    case "MEDIUM":
+      return {
+        label: "Moderado",
+        color: "border-orange-300 text-orange-600 dark:text-orange-400",
+      };
+    case "HIGH":
+      return {
+        label: "Grave",
+        color: "border-red-300 text-red-600 dark:text-red-400",
+      };
+    default:
+      return {
+        label: severity,
+        color: "border-gray-300 text-gray-600 dark:text-gray-400",
+      };
+  }
+};
 
 interface BacheDetailsProps {
-  bache: Report
-  onClose: () => void
+  bache: Report & { _count?: { comments: number } };
+  onClose: () => void;
 }
 
 export function BacheDetails({ bache, onClose }: BacheDetailsProps) {
-  const [activeTab, setActiveTab] = useState<"details" | "comments">("details")
-
-  const getStatusBadge = () => {
-    switch (bache.status) {
-      case "pending":
-        return <Badge className="bg-orange-500">Pendiente</Badge>
-      case "in_progress":
-        return <Badge className="bg-blue-500">En Proceso</Badge>
-      case "resolved":
-        return <Badge className="bg-green-500">Resuelto</Badge>
-      case "rejected":
-        return <Badge className="bg-red-500">Rechazado</Badge>
-      default:
-        return null
-    }
-  }
-
-  const getSeverityBadge = () => {
-    switch (bache.severity) {
-      case "low":
-        return (
-          <Badge variant="outline" className="border-yellow-300 text-yellow-600 dark:text-yellow-400">
-            Leve
-          </Badge>
-        )
-      case "medium":
-        return (
-          <Badge variant="outline" className="border-orange-300 text-orange-600 dark:text-orange-400">
-            Moderado
-          </Badge>
-        )
-      case "high":
-        return (
-          <Badge variant="outline" className="border-red-300 text-red-600 dark:text-red-400">
-            Grave
-          </Badge>
-        )
-      default:
-        return null
-    }
-  }
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat("es-PY", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(date)
-  }
+  const statusInfo = getStatusLabel(bache.status);
+  const severityInfo = getSeverityLabel(bache.severity);
 
   return (
-    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "details" | "comments")}>
-      <div className="flex items-center justify-between border-b p-3">
-        <TabsList>
-          <TabsTrigger value="details">Detalles</TabsTrigger>
-          <TabsTrigger value="comments">
-            Comentarios
-            <Badge variant="secondary" className="ml-1">
-              {bache.comments?.length || 0}
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Detalles del Reporte</DialogTitle>
+          <DialogClose className="absolute right-4 top-4">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogHeader>
 
-      <TabsContent value="details" className="p-4">
-        <div className="mb-4 aspect-video w-full overflow-hidden rounded-md">
-          <img
-            src={bache.picture || "/placeholder.svg"}
-            alt="Imagen del bache"
-            className="h-full w-full object-cover"
-          />
+        <div className="grid gap-6 py-4 md:grid-cols-2">
+          <div className="space-y-4">
+            <div className="aspect-video overflow-hidden rounded-lg">
+              <img
+                src={bache.picture}
+                alt="Imagen del bache"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
+              <Badge variant="outline" className={severityInfo.color}>
+                Gravedad: {severityInfo.label}
+              </Badge>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold">Descripción</h3>
+              <p className="text-sm text-muted-foreground">
+                {bache.description}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span>
+                {bache.address ||
+                  `${bache.latitude.toFixed(6)}, ${bache.longitude.toFixed(6)}`}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span>Reportado el {formatDate(bache.createdAt)}</span>
+            </div>
+
+            {bache._count && (
+              <div className="flex items-center gap-2 text-sm">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <span>{bache._count.comments} comentarios</span>
+              </div>
+            )}
+
+            <div className="rounded-lg bg-muted p-4">
+              <h3 className="mb-2 font-semibold">Estado del Reporte</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Creado</span>
+                  <Badge
+                    variant="outline"
+                    className="bg-primary text-primary-foreground"
+                  >
+                    {formatDate(bache.createdAt)}
+                  </Badge>
+                </div>
+                {bache.status !== "PENDING" && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Actualizado</span>
+                    <Badge
+                      variant="outline"
+                      className="bg-primary text-primary-foreground"
+                    >
+                      {formatDate(bache.updatedAt)}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="w-full" onClick={onClose}>
+                Cerrar
+              </Button>
+              <Button className="w-full">Ver en el Mapa</Button>
+            </div>
+          </div>
         </div>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {getStatusBadge()}
-          {getSeverityBadge()}
-        </div>
-
-        <div className="mb-4 space-y-2">
-          <h3 className="font-semibold">Ubicación</h3>
-          <p className="text-sm text-muted-foreground">
-            {bache.location.address || `${bache.location.lat.toFixed(6)}, ${bache.location.lng.toFixed(6)}`}
-          </p>
-        </div>
-
-        <div className="mb-4 space-y-2">
-          <h3 className="font-semibold">Descripción</h3>
-          <p className="text-sm text-muted-foreground">{bache.description}</p>
-        </div>
-
-        <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>Reportado el {formatDate(bache.date_created)}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ThumbsUp className="h-4 w-4" />
-            Priorizar
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <ThumbsDown className="h-4 w-4" />
-            No es urgente
-          </Button>
-        </div>
-      </TabsContent>
-
-      <TabsContent value="comments" className="p-4">
-        <ReportComments reportId={bache.id} />
-      </TabsContent>
-    </Tabs>
-  )
+      </DialogContent>
+    </Dialog>
+  );
 }
-

@@ -94,7 +94,7 @@ export default function PublicMapView() {
             script.onload = () => resolve();
             script.onerror = () =>
               reject(new Error(`Failed to load script: ${src}`));
-            document.body.appendChild(script);
+            document.head.appendChild(script);
           });
         };
 
@@ -109,17 +109,34 @@ export default function PublicMapView() {
         // Load all required stylesheets
         loadStylesheet("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
 
+        // Don't preload marker cluster - load it directly when needed
+        loadStylesheet(
+          "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        );
+        loadStylesheet(
+          "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        );
+
         // First load Leaflet
         await loadScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
 
-        // Give a short delay to ensure Leaflet is fully initialized
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Wait for Leaflet to be fully initialized
+        let attempts = 0;
+        while (typeof window.L === "undefined" && attempts < 10) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          attempts++;
+        }
 
         if (!window.L) {
           throw new Error("Leaflet failed to initialize properly");
         }
 
-        console.log("Leaflet loaded successfully");
+        // Load MarkerCluster after Leaflet is confirmed to be loaded
+        await loadScript(
+          "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+        );
+
+        console.log("Map libraries loaded successfully");
         setMapLoaded(true);
         leafletLoadedRef.current = true;
       } catch (error) {
@@ -136,7 +153,7 @@ export default function PublicMapView() {
         console.error("Map loading timed out");
         setMapError(true);
       }
-    }, 10000);
+    }, 15000); // Increased timeout period
 
     return () => clearTimeout(timer);
   }, []);
@@ -463,9 +480,14 @@ export default function PublicMapView() {
                 <SheetContent side="bottom" className="h-[80vh] p-0">
                   <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b p-3">
-                      <h3 className="text-lg font-semibold">
+                      {/* Add DialogTitle for accessibility */}
+                      <DialogTitle className="text-lg font-semibold">
                         Detalles del Reporte
-                      </h3>
+                      </DialogTitle>
+                      {/* Add DialogDescription for accessibility, can be visually hidden */}
+                      <DialogDescription className="sr-only">
+                        Información detallada sobre el reporte seleccionado
+                      </DialogDescription>
                       <Button
                         variant="ghost"
                         size="icon"

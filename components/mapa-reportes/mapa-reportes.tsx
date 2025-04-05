@@ -1,89 +1,161 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import Script from "next/script"
-import "./mapa-reportes.css"
+import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
+import "./mapa-reportes.css";
+import { ApiService } from "@/lib/api-service";
+import type { Report } from "@/types";
 
 // Coordinates for Encarnación, Paraguay
-const ENCARNACION_COORDS = [-27.3364, -55.8675]
-const DEFAULT_ZOOM = 14
-
-// Sample pothole reports data
-const potholeReports = [
-  {
-    id: 1,
-    position: [-27.3364, -55.8675], // Center of Encarnación
-    severity: "severe",
-    description: "Bache profundo en la avenida principal, peligroso para motocicletas",
-    status: "pending",
-    reportDate: "2023-10-15",
-  },
-  {
-    id: 2,
-    position: [-27.33, -55.87], // Slightly north
-    severity: "moderate",
-    description: "Bache de tamaño mediano cerca del semáforo, afecta el tráfico",
-    status: "in_progress",
-    reportDate: "2023-10-10",
-  },
-  {
-    id: 3,
-    position: [-27.34, -55.86], // Southeast
-    severity: "minor",
-    description: "Pequeño bache en la esquina, no muy profundo pero en crecimiento",
-    status: "resolved",
-    reportDate: "2023-09-28",
-  },
-]
+const ENCARNACION_COORDS = [-27.3364, -55.8675];
+const DEFAULT_ZOOM = 14;
 
 export default function MapaReportes() {
-  const mapRef = useRef<HTMLDivElement>(null)
-  const [isMapInitialized, setIsMapInitialized] = useState(false)
-  const mapInstanceRef = useRef<any>(null)
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const mapInstanceRef = useRef<any>(null);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch reports from API
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const fetchedReports = await ApiService.getReports();
+        setReports(fetchedReports);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   // Initialize map after Leaflet script is loaded
   const initializeMap = () => {
-    if (!mapRef.current || !window.L || isMapInitialized) return
+    if (!mapRef.current || !window.L || isMapInitialized) return;
 
     try {
-      const L = window.L
+      const L = window.L;
 
       // Create map instance
-      const map = L.map(mapRef.current).setView(ENCARNACION_COORDS, DEFAULT_ZOOM)
-      mapInstanceRef.current = map
+      const map = L.map(mapRef.current).setView(
+        ENCARNACION_COORDS,
+        DEFAULT_ZOOM
+      );
+      mapInstanceRef.current = map;
 
       // Add tile layer
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map)
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
 
       // Create custom icon function
       const createCustomIcon = (status: string) => {
-        let color = "gray"
+        let color = "gray";
 
         if (status === "pending") {
-          color = "orange"
+          color = "orange";
         } else if (status === "in_progress") {
-          color = "blue"
+          color = "blue";
         } else if (status === "resolved") {
-          color = "green"
+          color = "green";
         }
 
         return L.icon({
           iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-          shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+          shadowUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
           iconSize: [25, 41],
           iconAnchor: [12, 41],
           popupAnchor: [1, -34],
           shadowSize: [41, 41],
-        })
+        });
+      };
+
+      // Add markers for each report if reports are loaded
+      if (reports.length > 0) {
+        reports.forEach((report) => {
+          const marker = L.marker([report.location.lat, report.location.lng], {
+            icon: createCustomIcon(report.status),
+          }).addTo(map);
+
+          // Add popup with report details
+          marker.bindPopup(`
+            <div class="pothole-popup">
+              <h3>Reporte de Bache #${report.id}</h3>
+              <p><strong>Descripción:</strong> ${report.description}</p>
+              <p><strong>Severidad:</strong> ${report.severity}</p>
+              <p><strong>Estado:</strong> ${report.status}</p>
+              <p><strong>Fecha:</strong> ${new Date(
+                report.date_created
+              ).toLocaleDateString("es-PY")}</p>
+            </div>
+          `);
+        });
       }
 
-      // Add markers for each report
-      potholeReports.forEach((report) => {
-        const marker = L.marker(report.position as [number, number], {
+      // Handle window resize
+      const handleResize = () => {
+        if (map) {
+          map.invalidateSize();
+        }
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      // Initial invalidation after component mounts
+      setTimeout(handleResize, 100);
+
+      setIsMapInitialized(true);
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    }
+  };
+
+  // Update markers when reports data changes
+  useEffect(() => {
+    // Only update markers if map is already initialized
+    if (isMapInitialized && mapInstanceRef.current && reports.length > 0) {
+      const L = window.L;
+      // Clear existing markers
+      mapInstanceRef.current.eachLayer((layer: any) => {
+        if (layer instanceof L.Marker) {
+          mapInstanceRef.current.removeLayer(layer);
+        }
+      });
+
+      // Create custom icon function
+      const createCustomIcon = (status: string) => {
+        let color = "gray";
+
+        if (status === "pending") {
+          color = "orange";
+        } else if (status === "in_progress") {
+          color = "blue";
+        } else if (status === "resolved") {
+          color = "green";
+        }
+
+        return L.icon({
+          iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
+          shadowUrl:
+            "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41],
+        });
+      };
+
+      // Add new markers
+      reports.forEach((report) => {
+        const marker = L.marker([report.location.lat, report.location.lng], {
           icon: createCustomIcon(report.status),
-        }).addTo(map)
+        }).addTo(mapInstanceRef.current);
 
         // Add popup with report details
         marker.bindPopup(`
@@ -92,45 +164,31 @@ export default function MapaReportes() {
             <p><strong>Descripción:</strong> ${report.description}</p>
             <p><strong>Severidad:</strong> ${report.severity}</p>
             <p><strong>Estado:</strong> ${report.status}</p>
-            <p><strong>Fecha:</strong> ${report.reportDate}</p>
+            <p><strong>Fecha:</strong> ${new Date(
+              report.date_created
+            ).toLocaleDateString("es-PY")}</p>
           </div>
-        `)
-      })
-
-      // Handle window resize
-      const handleResize = () => {
-        if (map) {
-          map.invalidateSize()
-        }
-      }
-
-      window.addEventListener("resize", handleResize)
-
-      // Initial invalidation after component mounts
-      setTimeout(handleResize, 100)
-
-      setIsMapInitialized(true)
-    } catch (error) {
-      console.error("Error initializing map:", error)
+        `);
+      });
     }
-  }
+  }, [reports, isMapInitialized]);
 
   // Handle script load event
   const handleScriptLoad = () => {
-    initializeMap()
-  }
+    initializeMap();
+  };
 
   // Cleanup function
   useEffect(() => {
     return () => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
       }
 
-      window.removeEventListener("resize", () => {})
-    }
-  }, [])
+      window.removeEventListener("resize", () => {});
+    };
+  }, []);
 
   return (
     <>
@@ -151,10 +209,11 @@ export default function MapaReportes() {
       />
 
       <div className="mapa-container">
-        {!isMapInitialized && <div className="mapa-loading">Cargando mapa...</div>}
+        {(isLoading || !isMapInitialized) && (
+          <div className="mapa-loading">Cargando mapa...</div>
+        )}
         <div ref={mapRef} className="mapa"></div>
       </div>
     </>
-  )
+  );
 }
-

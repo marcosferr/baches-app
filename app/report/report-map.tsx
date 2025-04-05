@@ -1,85 +1,145 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect, useRef, useState } from "react"
-import { MapPin } from "lucide-react"
+import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 
 interface ReportMapProps {
-  onLocationSelect: (lat: number, lng: number) => void
-  selectedLocation: { lat: number; lng: number } | null
+  onLocationSelect: (lat: number, lng: number) => void;
+  selectedLocation: { lat: number; lng: number } | null;
 }
 
-export function ReportMap({ onLocationSelect, selectedLocation }: ReportMapProps) {
-  // En un caso real, usaríamos una biblioteca como Google Maps o Leaflet
-  // Esta es una simulación simple para el propósito de este ejemplo
+export function ReportMap({
+  onLocationSelect,
+  selectedLocation,
+}: ReportMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
-  const mapRef = useRef<HTMLDivElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [position, setPosition] = useState({ x: 50, y: 50 }) // Porcentaje en el mapa
+  // Initialize map after Leaflet script is loaded
+  const initializeMap = () => {
+    if (!mapRef.current || !window.L || isMapInitialized) return;
 
+    try {
+      const L = window.L;
+
+      // Create map instance with default coordinates for Encarnación, Paraguay
+      const map = L.map(mapRef.current).setView([-27.3364, -55.8675], 14);
+      mapInstanceRef.current = map;
+
+      // Add tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      // Handle map click to set marker
+      map.on("click", (e: any) => {
+        const { lat, lng } = e.latlng;
+        onLocationSelect(lat, lng);
+      });
+
+      // Add initial marker if selectedLocation exists
+      if (selectedLocation) {
+        markerRef.current = L.marker(
+          [selectedLocation.lat, selectedLocation.lng],
+          {
+            draggable: true,
+          }
+        ).addTo(map);
+
+        // Handle marker drag end
+        markerRef.current.on("dragend", function (e: any) {
+          const position = e.target.getLatLng();
+          onLocationSelect(position.lat, position.lng);
+        });
+      }
+
+      setIsMapInitialized(true);
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    }
+  };
+
+  // Handle script load event
+  const handleScriptLoad = () => {
+    initializeMap();
+  };
+
+  // Update marker when selectedLocation changes
   useEffect(() => {
-    if (selectedLocation && mapRef.current) {
-      // Convertir coordenadas reales a posición en el mapa simulado
-      // En un caso real, esto sería manejado por la API del mapa
-      setPosition({
-        x: ((selectedLocation.lng + 180) / 360) * 100,
-        y: ((90 - selectedLocation.lat) / 180) * 100,
-      })
+    if (isMapInitialized && mapInstanceRef.current) {
+      const L = window.L;
+
+      // Remove existing marker
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+
+      // Add new marker
+      if (selectedLocation) {
+        markerRef.current = L.marker(
+          [selectedLocation.lat, selectedLocation.lng],
+          {
+            draggable: true,
+          }
+        ).addTo(mapInstanceRef.current);
+
+        // Center map on marker
+        mapInstanceRef.current.setView(
+          [selectedLocation.lat, selectedLocation.lng],
+          14
+        );
+
+        // Handle marker drag end
+        markerRef.current.on("dragend", function (e: any) {
+          const position = e.target.getLatLng();
+          onLocationSelect(position.lat, position.lng);
+        });
+      }
     }
-  }, [selectedLocation])
+  }, [selectedLocation, isMapInitialized, onLocationSelect]);
 
-  const handleMapClick = (e: React.MouseEvent) => {
-    if (mapRef.current) {
-      const rect = mapRef.current.getBoundingClientRect()
-      const x = ((e.clientX - rect.left) / rect.width) * 100
-      const y = ((e.clientY - rect.top) / rect.height) * 100
-
-      setPosition({ x, y })
-
-      // Convertir posición en el mapa a coordenadas simuladas
-      // En un caso real, esto sería manejado por la API del mapa
-      const lat = 90 - (y / 100) * 180
-      const lng = (x / 100) * 360 - 180
-
-      onLocationSelect(lat, lng)
-    }
-  }
-
-  const handleMouseDown = () => {
-    setIsDragging(true)
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && mapRef.current) {
-      handleMapClick(e)
-    }
-  }
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   return (
-    <div
-      ref={mapRef}
-      className="relative h-full w-full bg-[url('/placeholder.svg?height=600&width=800')] bg-cover bg-center"
-      onClick={handleMapClick}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseMove={handleMouseMove}
-    >
-      {/* Marcador de posición */}
-      <div
-        className="absolute -translate-x-1/2 -translate-y-1/2 animate-bounce"
-        style={{
-          left: `${position.x}%`,
-          top: `${position.y}%`,
-        }}
-      >
-        <MapPin className="h-8 w-8 text-orange-500 drop-shadow-md" />
-      </div>
-    </div>
-  )
-}
+    <>
+      {/* Load Leaflet CSS */}
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossOrigin=""
+      />
 
+      {/* Load Leaflet JS */}
+      <Script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossOrigin=""
+        onLoad={handleScriptLoad}
+      />
+
+      <div className="relative h-full w-full">
+        {!isMapInitialized && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+            <p>Cargando mapa...</p>
+          </div>
+        )}
+        <div ref={mapRef} className="h-full w-full"></div>
+      </div>
+    </>
+  );
+}

@@ -54,6 +54,7 @@ export default function PublicMapView() {
       try {
         const fetchedReports = await ApiService.getReports();
         setReports(fetchedReports);
+        console.log("Fetched reports:", fetchedReports);
         setFilteredReports(fetchedReports);
       } catch (error) {
         console.error("Error fetching reports:", error);
@@ -162,14 +163,14 @@ export default function PublicMapView() {
   useEffect(() => {
     const filtered = reports.filter((report) => {
       const statusMatch =
-        (report.status === "pending" && filters.pending) ||
-        (report.status === "in_progress" && filters.in_progress) ||
-        (report.status === "resolved" && filters.resolved);
+        (report.status === "PENDING" && filters.pending) ||
+        (report.status === "IN_PROGRESS" && filters.in_progress) ||
+        (report.status === "RESOLVED" && filters.resolved);
 
       const severityMatch =
-        (report.severity === "low" && filters.low) ||
-        (report.severity === "medium" && filters.medium) ||
-        (report.severity === "high" && filters.high);
+        (report.severity === "LOW" && filters.low) ||
+        (report.severity === "MEDIUM" && filters.medium) ||
+        (report.severity === "HIGH" && filters.high);
 
       return statusMatch && severityMatch;
     });
@@ -195,8 +196,8 @@ export default function PublicMapView() {
     }
 
     // Center map on selected report
-    if (mapRef.current && report.location) {
-      mapRef.current.flyTo([report.location.lat, report.location.lng], 16);
+    if (mapRef.current && report.latitude !== undefined && report.longitude !== undefined) {
+      mapRef.current.flyTo([report.latitude, report.longitude], 16);
     }
   };
 

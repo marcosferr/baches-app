@@ -22,6 +22,13 @@ import {
   updateNotificationPreferences,
 } from "@/lib/actions/notification-actions";
 
+import {
+  getProfile,
+  updateProfile,
+  getUserStats,
+  getUserActivities,
+} from "@/lib/actions/profile-actions";
+
 import type {
   ReportFilterOptions,
   CreateReportDTO,
@@ -191,6 +198,47 @@ export const ApiService = {
       await removeNotification(id);
     } catch (error) {
       console.error("Error deleting notification:", error);
+      throw error;
+    }
+  },
+
+  // Profile
+  getUserProfile: async () => {
+    try {
+      const { user } = await getProfile();
+      return user;
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      throw error;
+    }
+  },
+
+  updateUserProfile: async (data: { name?: string; avatar?: string }) => {
+    try {
+      const { user } = await updateProfile(data);
+      return user;
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      throw error;
+    }
+  },
+
+  getUserStats: async () => {
+    try {
+      const { stats } = await getUserStats();
+      return stats;
+    } catch (error) {
+      console.error("Error getting user stats:", error);
+      throw error;
+    }
+  },
+
+  getUserActivities: async (limit = 3) => {
+    try {
+      const { activities } = await getUserActivities(limit);
+      return activities;
+    } catch (error) {
+      console.error("Error getting user activities:", error);
       throw error;
     }
   },

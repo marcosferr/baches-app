@@ -11,7 +11,6 @@ import {
   Crosshair,
   MapPin,
 } from "lucide-react";
-import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ReportMap } from "./report-map";
-import { createReport } from "@/lib/actions/report-actions";
+import { ApiService } from "@/lib/api-service";
 import "./report.css";
 
 // Map severity from UI values to API values
@@ -106,18 +105,20 @@ export default function ReportPage() {
     setIsSubmitting(true);
 
     try {
-      // Create report data
+      // Create report data with proper structure for ApiService
       const reportData = {
         picture: previewImage,
         description,
         severity: severityMap[severity],
-        latitude: location.lat,
-        longitude: location.lng,
-        address: address.trim() || null,
+        location: {
+          lat: location.lat,
+          lng: location.lng,
+          address: address.trim() || null,
+        },
       };
 
-      // Submit report using server action
-      await createReport(reportData);
+      // Submit report using API service
+      await ApiService.createReport(reportData);
 
       setIsSubmitting(false);
       setIsSuccess(true);

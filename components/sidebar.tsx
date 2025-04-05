@@ -1,7 +1,7 @@
-"use client"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import {
   MapPin,
   FileText,
@@ -15,8 +15,8 @@ import {
   Sun,
   Moon,
   Globe,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -25,20 +25,20 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "@/components/ui/sidebar"
-import { useTheme } from "@/components/theme-provider"
+} from "@/components/ui/sidebar";
+import { useTheme } from "@/components/theme-provider";
 
 interface SidebarProps {
-  userRole: "citizen" | "admin"
+  userRole: "citizen" | "admin";
 }
 
 export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
-  const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
-  const { data: session, status } = useSession()
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const { data: session, status } = useSession();
 
   // Use the authenticated user's role if available
-  const effectiveRole = session?.user?.role || userRole
+  const effectiveRole = session?.user?.role || userRole;
 
   // Public menu items (available to all users)
   const publicMenuItems = [
@@ -52,7 +52,7 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       icon: Globe,
       href: "/public-map",
     },
-  ]
+  ];
 
   const citizenMenuItems = [
     ...publicMenuItems,
@@ -67,11 +67,6 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       href: "/my-reports",
     },
     {
-      title: "Mapa de Baches",
-      icon: Map,
-      href: "/map",
-    },
-    {
       title: "Notificaciones",
       icon: Bell,
       href: "/notifications",
@@ -81,7 +76,7 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       icon: User,
       href: "/profile",
     },
-  ]
+  ];
 
   const adminMenuItems = [
     ...publicMenuItems,
@@ -96,11 +91,6 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       href: "/admin/reports",
     },
     {
-      title: "Mapa de Baches",
-      icon: Map,
-      href: "/admin/map",
-    },
-    {
       title: "Notificaciones",
       icon: Bell,
       href: "/admin/notifications",
@@ -110,7 +100,7 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       icon: Settings,
       href: "/admin/settings",
     },
-  ]
+  ];
 
   // Skip sidebar on auth pages
   if (
@@ -119,12 +109,16 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
     pathname === "/forgot-password" ||
     pathname.startsWith("/reset-password")
   ) {
-    return null
+    return null;
   }
 
   // If user is not authenticated, show only public menu items
   const menuItems =
-    status !== "authenticated" ? publicMenuItems : effectiveRole === "admin" ? adminMenuItems : citizenMenuItems
+    status !== "authenticated"
+      ? publicMenuItems
+      : effectiveRole === "admin"
+      ? adminMenuItems
+      : citizenMenuItems;
 
   return (
     <Sidebar>
@@ -146,7 +140,11 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.title}
+              >
                 <Link href={item.href}>
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
@@ -164,10 +162,19 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label="Cambiar tema"
           >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </Button>
           {status === "authenticated" ? (
-            <Button variant="ghost" size="sm" className="gap-2" onClick={() => signOut({ callbackUrl: "/login" })}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
               <LogOut className="h-4 w-4" />
               <span>Cerrar sesión</span>
             </Button>
@@ -182,6 +189,5 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
-

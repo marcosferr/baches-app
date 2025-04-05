@@ -11,17 +11,17 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String
-  email         String         @unique
-  password      String
-  role          Role           @default(CITIZEN)
-  avatar        String?
-  reports       Report[]
-  comments      Comment[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                      String                  @id @default(cuid())
+  name                    String
+  email                   String                  @unique
+  password                String
+  role                    Role                    @default(CITIZEN)
+  avatar                  String?
+  reports                 Report[]
+  comments                Comment[]
+  notifications           Notification[]
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
   notificationPreferences NotificationPreference?
 }
 
@@ -53,27 +53,27 @@ model Comment {
 }
 
 model Notification {
-  id         String           @id @default(cuid())
-  title      String
-  message    String
-  type       NotificationType
-  read       Boolean          @default(false)
-  relatedId  String?
-  user       User             @relation(fields: [userId], references: [id])
-  userId     String
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  relatedId String?
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 model NotificationPreference {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
   reportUpdates Boolean  @default(true)
-  comments     Boolean  @default(true)
-  email        Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  comments      Boolean  @default(true)
+  email         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum Role {
@@ -100,4 +100,3 @@ enum NotificationType {
   APPROVAL
   PRIORITY
 }
-

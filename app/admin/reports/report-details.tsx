@@ -106,8 +106,6 @@ export function ReportDetails({
     if (report.address) return report.address;
     if (report.latitude && report.longitude)
       return `Lat: ${report.latitude}, Lng: ${report.longitude}`;
-    if (report.location)
-      return `Lat: ${report.location.lat}, Lng: ${report.location.lng}`;
     return "Ubicación no disponible";
   };
 

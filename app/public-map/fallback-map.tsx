@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import type { Report } from "@/types"
+import { MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { Report } from "@/types";
 
 interface FallbackMapProps {
-  reports: Report[]
-  onReportSelect: (report: Report) => void
+  reports: Report[];
+  onReportSelect: (report: Report) => void;
 }
 
 export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
@@ -16,13 +16,18 @@ export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
         <MapPin className="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
         <h3 className="text-lg font-medium">No se pudo cargar el mapa</h3>
         <p className="mb-4 text-sm text-muted-foreground">
-          Hubo un problema al cargar el mapa interactivo. Por favor, intenta recargar la página.
+          Hubo un problema al cargar el mapa interactivo. Por favor, intenta
+          recargar la página.
         </p>
-        <Button onClick={() => window.location.reload()}>Recargar página</Button>
+        <Button onClick={() => window.location.reload()}>
+          Recargar página
+        </Button>
       </div>
 
       <div className="mt-8 w-full max-w-md">
-        <h4 className="mb-2 text-center text-sm font-medium">Reportes disponibles ({reports.length})</h4>
+        <h4 className="mb-2 text-center text-sm font-medium">
+          Reportes disponibles ({reports.length})
+        </h4>
         <div className="max-h-[300px] overflow-y-auto rounded-lg border bg-background p-2">
           {reports.map((report) => (
             <div
@@ -32,18 +37,25 @@ export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
             >
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 overflow-hidden rounded-md">
-                  <img src={report.picture || "/placeholder.svg"} alt="Bache" className="h-full w-full object-cover" />
+                  <img
+                    src={report.picture || "/placeholder.svg"}
+                    alt="Bache"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {report.location.address || `${report.location.lat.toFixed(6)}, ${report.location.lng.toFixed(6)}`}
+                    {report.address ||
+                      `${report.latitude.toFixed(
+                        6
+                      )}, ${report.longitude.toFixed(6)}`}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {report.status === "pending"
                       ? "Pendiente"
                       : report.status === "in_progress"
-                        ? "En proceso"
-                        : "Resuelto"}
+                      ? "En proceso"
+                      : "Resuelto"}
                   </p>
                 </div>
               </div>
@@ -51,11 +63,12 @@ export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
           ))}
 
           {reports.length === 0 && (
-            <div className="p-4 text-center text-sm text-muted-foreground">No hay reportes disponibles</div>
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              No hay reportes disponibles
+            </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
-

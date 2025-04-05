@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
+import { X, ThumbsUp, ThumbsDown, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { MapPin, Calendar, MessageSquare } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import type { Report } from "@prisma/client";
 
 // Function to format dates
@@ -74,12 +76,14 @@ interface BacheDetailsProps {
 }
 
 export function BacheDetails({ bache, onClose }: BacheDetailsProps) {
+  const { data: session } = useSession();
   const statusInfo = getStatusLabel(bache.status);
   const severityInfo = getSeverityLabel(bache.severity);
+  const [activeTab, setActiveTab] = useState<string>("details");
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Detalles del Reporte</DialogTitle>
           <DialogClose className="absolute right-4 top-4">
@@ -88,86 +92,145 @@ export function BacheDetails({ bache, onClose }: BacheDetailsProps) {
           </DialogClose>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4 md:grid-cols-2">
-          <div className="space-y-4">
-            <div className="aspect-video overflow-hidden rounded-lg">
-              <img
-                src={bache.picture}
-                alt="Imagen del bache"
-                className="h-full w-full object-cover"
-              />
-            </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Detalles</TabsTrigger>
+            <TabsTrigger value="comments">Comentarios</TabsTrigger>
+          </TabsList>
 
-            <div className="flex flex-wrap gap-2">
-              <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
-              <Badge variant="outline" className={severityInfo.color}>
-                Gravedad: {severityInfo.label}
-              </Badge>
-            </div>
+          <TabsContent value="details" className="space-y-4 pt-4">
+            <div className="grid gap-6 py-4 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="aspect-video overflow-hidden rounded-lg">
+                  <img
+                    src={bache.picture}
+                    alt="Imagen del bache"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold">Descripción</h3>
-              <p className="text-sm text-muted-foreground">
-                {bache.description}
-              </p>
-            </div>
-          </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
+                  <Badge variant="outline" className={severityInfo.color}>
+                    Gravedad: {severityInfo.label}
+                  </Badge>
+                </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>
-                {bache.address ||
-                  `${bache.latitude.toFixed(6)}, ${bache.longitude.toFixed(6)}`}
-              </span>
-            </div>
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Descripción</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {bache.description}
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>Reportado el {formatDate(bache.createdAt)}</span>
-            </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    {bache.address ||
+                      `${bache.latitude.toFixed(6)}, ${bache.longitude.toFixed(
+                        6
+                      )}`}
+                  </span>
+                </div>
 
-            {bache._count && (
-              <div className="flex items-center gap-2 text-sm">
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <span>{bache._count.comments} comentarios</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>Reportado el {formatDate(bache.createdAt)}</span>
+                </div>
+
+                {bache._count && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto text-sm"
+                        onClick={() => setActiveTab("comments")}
+                      >
+                        {bache._count.comments} comentarios
+                      </Button>
+                    </span>
+                  </div>
+                )}
+
+                <div className="rounded-lg bg-muted p-4">
+                  <h3 className="mb-2 font-semibold">Estado del Reporte</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Creado</span>
+                      <Badge
+                        variant="outline"
+                        className="bg-primary text-primary-foreground"
+                      >
+                        {formatDate(bache.createdAt)}
+                      </Badge>
+                    </div>
+                    {bache.status !== "PENDING" && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Actualizado</span>
+                        <Badge
+                          variant="outline"
+                          className="bg-primary text-primary-foreground"
+                        >
+                          {formatDate(bache.updatedAt)}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={onClose}
+                  >
+                    Cerrar
+                  </Button>
+                  <Link href={`/reports/${bache.id}`} className="w-full">
+                    <Button className="w-full">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Ver Completo
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="comments" className="space-y-4 pt-4">
+            <ReportComments reportId={bache.id} />
+
+            {!session && (
+              <div className="rounded-md bg-muted p-4 text-sm">
+                <p className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>
+                    Debes{" "}
+                    <Link href="/login" className="font-medium underline">
+                      iniciar sesión
+                    </Link>{" "}
+                    para comentar en este reporte.
+                  </span>
+                </p>
               </div>
             )}
 
-            <div className="rounded-lg bg-muted p-4">
-              <h3 className="mb-2 font-semibold">Estado del Reporte</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Creado</span>
-                  <Badge
-                    variant="outline"
-                    className="bg-primary text-primary-foreground"
-                  >
-                    {formatDate(bache.createdAt)}
-                  </Badge>
-                </div>
-                {bache.status !== "PENDING" && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Actualizado</span>
-                    <Badge
-                      variant="outline"
-                      className="bg-primary text-primary-foreground"
-                    >
-                      {formatDate(bache.updatedAt)}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="w-full" onClick={onClose}>
-                Cerrar
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={() => setActiveTab("details")}>
+                Volver a Detalles
               </Button>
-              <Button className="w-full">Ver en el Mapa</Button>
+              <Link href={`/reports/${bache.id}`}>
+                <Button>
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ver Reporte Completo
+                </Button>
+              </Link>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -70,7 +70,12 @@
 }
 
 .pothole-popup {
-  padding: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.popup-header {
+  padding: 12px 12px 8px 12px;
 }
 
 .pothole-popup h3 {
@@ -79,9 +84,58 @@
   font-weight: 600;
 }
 
-.pothole-popup p {
-  margin: 4px 0;
-  font-size: 14px;
+.popup-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.popup-badge {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: white;
+}
+
+.popup-badge-pending {
+  background-color: #f97316;
+}
+
+.popup-badge-in_progress {
+  background-color: #3b82f6;
+}
+
+.popup-badge-resolved {
+  background-color: #22c55e;
+}
+
+.popup-badge-rejected {
+  background-color: #ef4444;
+}
+
+.popup-badge-severity {
+  background-color: #6b7280;
+}
+
+.popup-image {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+}
+
+.popup-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.popup-description {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
 }
 
 /* Mobile optimizations */
@@ -92,7 +146,7 @@
 }
 
 /* Override z-index of Leaflet elements to play nice with our UI */
-.leaflet-top, 
+.leaflet-top,
 .leaflet-bottom {
   z-index: 5;
 }
@@ -110,4 +164,3 @@
   justify-content: center;
   align-items: center;
 }
-

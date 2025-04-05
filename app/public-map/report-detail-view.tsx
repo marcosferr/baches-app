@@ -1,5 +1,13 @@
-import { Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+  MessageSquare,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import type { Report } from "@/types";
 
 interface ReportDetailViewProps {
@@ -10,15 +18,14 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
   // Format date
   const formatDate = (dateString: string | Date) => {
     if (!dateString) return "Fecha desconocida";
-    
-    const date = typeof dateString === "string" 
-      ? new Date(dateString) 
-      : dateString;
-      
+
+    const date =
+      typeof dateString === "string" ? new Date(dateString) : dateString;
+
     if (isNaN(date.getTime())) {
       return "Fecha inválida";
     }
-    
+
     return new Intl.DateTimeFormat("es-PY", {
       year: "numeric",
       month: "short",
@@ -28,8 +35,11 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
 
   // Get status badge
   const getStatusBadge = () => {
-    const status = typeof report.status === 'string' ? report.status.toLowerCase() : report.status;
-    
+    const status =
+      typeof report.status === "string"
+        ? report.status.toLowerCase()
+        : report.status;
+
     switch (status) {
       case "pending":
       case "PENDING":
@@ -50,8 +60,11 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
 
   // Get severity badge
   const getSeverityBadge = () => {
-    const severity = typeof report.severity === 'string' ? report.severity.toLowerCase() : report.severity;
-    
+    const severity =
+      typeof report.severity === "string"
+        ? report.severity.toLowerCase()
+        : report.severity;
+
     switch (severity) {
       case "low":
       case "LOW":
@@ -116,9 +129,20 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
         <p className="text-sm text-muted-foreground">{report.description}</p>
       </div>
 
-      <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-        <Clock className="h-4 w-4" />
-        <span>Reportado el {formatDate(report.createdAt || report.date_created)}</span>
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>
+            Reportado el {formatDate(report.createdAt || report.date_created)}
+          </span>
+        </div>
+
+        {report.comments && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MessageSquare className="h-4 w-4" />
+            <span>{report.comments.length} comentarios</span>
+          </div>
+        )}
       </div>
 
       {(report.status === "in_progress" || report.status === "IN_PROGRESS") && (
@@ -168,6 +192,15 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
           </p>
         </div>
       )}
+
+      <div className="mt-6 flex justify-end">
+        <Link href={`/reports/${report.id}`}>
+          <Button>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Ver Reporte Completo
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

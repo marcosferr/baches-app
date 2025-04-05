@@ -148,10 +148,26 @@ export function PublicMapComponent({
       // Create popup content
       const popupContent = document.createElement("div");
       popupContent.className = "pothole-popup";
+
+      // Create a more detailed popup with image thumbnail
       popupContent.innerHTML = `
-        <h3>${report.title || "Reporte de Bache"}</h3>
-        <p><strong>Estado:</strong> ${getStatusText(report.status)}</p>
-        <p><strong>Gravedad:</strong> ${getSeverityText(report.severity)}</p>
+        <div class="popup-header">
+          <h3>${report.title || "Reporte de Bache"}</h3>
+          <div class="popup-badges">
+            <span class="popup-badge popup-badge-${report.status.toLowerCase()}">${getStatusText(
+        report.status
+      )}</span>
+            <span class="popup-badge popup-badge-severity">${getSeverityText(
+              report.severity
+            )}</span>
+          </div>
+        </div>
+        <div class="popup-image">
+          <img src="${report.picture}" alt="Imagen del bache" />
+        </div>
+        <p class="popup-description">${report.description.substring(0, 60)}${
+        report.description.length > 60 ? "..." : ""
+      }</p>
       `;
 
       // Add view details button

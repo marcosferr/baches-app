@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Crosshair,
+  MapPin,
 } from "lucide-react";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ export default function ReportPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
+  const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState<"low" | "medium" | "high">("medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,6 +113,7 @@ export default function ReportPage() {
         severity: severityMap[severity],
         latitude: location.lat,
         longitude: location.lng,
+        address: address.trim() || null,
       };
 
       // Submit report using server action
@@ -124,6 +127,7 @@ export default function ReportPage() {
         setIsSuccess(false);
         setPreviewImage(null);
         setLocation(null);
+        setAddress("");
         setDescription("");
         setSeverity("medium");
       }, 3000);
@@ -324,6 +328,26 @@ export default function ReportPage() {
                       </div>
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Dirección (opcional)</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="address"
+                          placeholder="Ej. Avenida Caballero 123, Encarnación"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Proporciona una dirección para ayudar a ubicar el bache
+                      más fácilmente
+                    </p>
+                  </div>
 
                   {!location && (
                     <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">

@@ -46,7 +46,23 @@ Create an `Aptfile` in your project root with the following content:
 postgis
 ```
 
-## Step 4: Configure Environment Variables
+## Step 4: Install PostGIS Extension
+
+Connect to your Heroku Postgres database and install the PostGIS extension:
+
+```bash
+heroku pg:psql
+```
+
+Once connected to the database, run:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+```
+
+Type `\q` to exit the PostgreSQL console.
+
+## Step 5: Configure Environment Variables
 
 Set the required environment variables:
 
@@ -61,7 +77,7 @@ heroku config:set NEXTAUTH_SECRET=your-strong-secret-key-here
 heroku config:set DEBUG_DISABLE_AUTH=FALSE
 ```
 
-## Step 5: Deploy to Heroku
+## Step 6: Deploy to Heroku
 
 ```bash
 # Commit your changes
@@ -72,7 +88,7 @@ git commit -m "Configure for Heroku deployment"
 git push heroku main
 ```
 
-## Step 6: Run Database Migrations
+## Step 7: Run Database Migrations
 
 The migrations will run automatically during the release phase, but you can also run them manually:
 
@@ -80,7 +96,7 @@ The migrations will run automatically during the release phase, but you can also
 heroku run npx prisma migrate deploy
 ```
 
-## Step 7: Seed the Database (Optional)
+## Step 8: Seed the Database (Optional)
 
 If you want to seed the database with initial data:
 
@@ -89,6 +105,16 @@ heroku run npm run prisma:seed
 ```
 
 ## Troubleshooting
+
+### Dependency Issues
+
+If you encounter dependency conflicts during deployment, you may need to update the package versions in your package.json file. The current configuration uses:
+
+```json
+"@auth/core": "0.34.2",
+"@auth/prisma-adapter": "0.34.2",
+"next-auth": "4.24.11"
+```
 
 ### Database Connection Issues
 

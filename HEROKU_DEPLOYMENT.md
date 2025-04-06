@@ -48,7 +48,19 @@ postgis
 
 ## Step 4: Install PostGIS Extension
 
-Connect to your Heroku Postgres database and install the PostGIS extension:
+You can install the PostGIS extension in two ways:
+
+### Option 1: Using the provided script
+
+Run the setup script that will automatically install the PostGIS extension:
+
+```bash
+heroku run node prisma/setup-postgis.js
+```
+
+### Option 2: Manual installation
+
+Connect to your Heroku Postgres database and install the PostGIS extension manually:
 
 ```bash
 heroku pg:psql
@@ -111,8 +123,8 @@ heroku run npm run prisma:seed
 If you encounter dependency conflicts during deployment, you may need to update the package versions in your package.json file. The current configuration uses:
 
 ```json
-"@auth/core": "0.34.2",
-"@auth/prisma-adapter": "0.34.2",
+"@auth/core": "0.38.0",
+"@auth/prisma-adapter": "2.7.2",
 "next-auth": "4.24.11"
 ```
 

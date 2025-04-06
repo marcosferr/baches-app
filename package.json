@@ -19,8 +19,8 @@
     "node": "18.x"
   },
   "dependencies": {
-    "@auth/core": "0.34.2",
-    "@auth/prisma-adapter": "0.34.2",
+    "@auth/core": "0.38.0",
+    "@auth/prisma-adapter": "2.7.2",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "latest",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -66,6 +66,7 @@
     "next-auth": "4.24.11",
     "next-themes": "^0.4.4",
     "nodemailer": "latest",
+    "pg": "^8.11.3",
     "prisma": "latest",
     "react": "^19",
     "react-csv": "^2.2.2",

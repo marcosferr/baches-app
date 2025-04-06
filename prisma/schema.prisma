@@ -30,7 +30,7 @@ model Report {
   picture     String
   description String
   severity    Severity
-  status      Status    @default(PENDING)
+  status      Status    @default(SUBMITTED)
   latitude    Float
   longitude   Float
   address     String?
@@ -88,6 +88,7 @@ enum Severity {
 }
 
 enum Status {
+  SUBMITTED
   PENDING
   IN_PROGRESS
   RESOLVED

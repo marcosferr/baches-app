@@ -81,6 +81,8 @@ export default function AdminReportsPage() {
   const getStatusBadge = (status: string) => {
     const normalizedStatus = status.toLowerCase();
     switch (normalizedStatus) {
+      case "submitted":
+        return <Badge className="bg-yellow-500">Enviado</Badge>;
       case "pending":
         return <Badge className="bg-orange-500">Pendiente</Badge>;
       case "in_progress":

@@ -6,6 +6,15 @@ interface ReportStatusBadgeProps {
 
 export function ReportStatusBadge({ status }: ReportStatusBadgeProps) {
   switch (status) {
+    case "SUBMITTED":
+      return (
+        <Badge
+          variant="outline"
+          className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
+        >
+          Enviado
+        </Badge>
+      );
     case "PENDING":
       return (
         <Badge

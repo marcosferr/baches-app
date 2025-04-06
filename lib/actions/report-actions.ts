@@ -169,7 +169,7 @@ export async function createReport(data: CreateReportData) {
         picture: data.picture,
         description: data.description,
         severity: data.severity as Severity,
-        status: Status.PENDING,
+        status: Status.SUBMITTED,
         latitude: data.latitude,
         longitude: data.longitude,
         address: data.address,
@@ -316,8 +316,11 @@ export async function updateReport(
       let statusMessage = "";
 
       switch (status) {
+        case "SUBMITTED":
+          statusMessage = "ha sido enviado y está en espera de aprobación";
+          break;
         case "PENDING":
-          statusMessage = "está pendiente de revisión";
+          statusMessage = "ha sido aprobado y está pendiente de revisión";
           break;
         case "IN_PROGRESS":
           statusMessage = "está en proceso de atención";

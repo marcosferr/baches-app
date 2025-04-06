@@ -13,7 +13,12 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -52,7 +57,10 @@ export default function PublicMapView() {
     const fetchReports = async () => {
       setIsLoading(true);
       try {
-        const fetchedReports = await ApiService.getReports();
+        // Exclude SUBMITTED reports from public map
+        const fetchedReports = await ApiService.getReports({
+          status: ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"],
+        });
         setReports(fetchedReports);
         console.log("Fetched reports:", fetchedReports);
         setFilteredReports(fetchedReports);
@@ -196,7 +204,11 @@ export default function PublicMapView() {
     }
 
     // Center map on selected report
-    if (mapRef.current && report.latitude !== undefined && report.longitude !== undefined) {
+    if (
+      mapRef.current &&
+      report.latitude !== undefined &&
+      report.longitude !== undefined
+    ) {
       mapRef.current.flyTo([report.latitude, report.longitude], 16);
     }
   };
@@ -481,14 +493,14 @@ export default function PublicMapView() {
                 <SheetContent side="bottom" className="h-[80vh] p-0">
                   <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b p-3">
-                      {/* Add DialogTitle for accessibility */}
-                      <DialogTitle className="text-lg font-semibold">
+                      {/* Add SheetTitle for accessibility */}
+                      <SheetTitle className="text-lg font-semibold">
                         Detalles del Reporte
-                      </DialogTitle>
-                      {/* Add DialogDescription for accessibility, can be visually hidden */}
-                      <DialogDescription className="sr-only">
+                      </SheetTitle>
+                      {/* Add SheetDescription for accessibility, can be visually hidden */}
+                      <SheetDescription className="sr-only">
                         Información detallada sobre el reporte seleccionado
-                      </DialogDescription>
+                      </SheetDescription>
                       <Button
                         variant="ghost"
                         size="icon"

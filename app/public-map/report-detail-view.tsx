@@ -41,6 +41,9 @@ export function ReportDetailView({ report }: ReportDetailViewProps) {
         : report.status;
 
     switch (status) {
+      case "submitted":
+      case "SUBMITTED":
+        return <Badge className="bg-yellow-500">Enviado</Badge>;
       case "pending":
       case "PENDING":
         return <Badge className="bg-orange-500">Pendiente</Badge>;

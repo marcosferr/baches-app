@@ -99,6 +99,8 @@ export default function MyReportsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "SUBMITTED":
+        return <Badge className="bg-yellow-500">Enviado</Badge>;
       case "PENDING":
         return <Badge className="bg-orange-500">Pendiente</Badge>;
       case "IN_PROGRESS":

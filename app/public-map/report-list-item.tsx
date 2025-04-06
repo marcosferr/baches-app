@@ -1,6 +1,13 @@
 "use client";
 
-import { MapPin, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Report } from "@/types";
@@ -29,12 +36,16 @@ export function ReportListItem({
   // Get status icon
   const getStatusIcon = () => {
     switch (report.status) {
+      case "submitted":
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
       case "pending":
         return <AlertTriangle className="h-4 w-4 text-orange-500" />;
       case "in_progress":
         return <Clock className="h-4 w-4 text-blue-500" />;
       case "resolved":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "rejected":
+        return <XCircle className="h-4 w-4 text-red-500" />;
       default:
         return <MapPin className="h-4 w-4" />;
     }
@@ -43,12 +54,16 @@ export function ReportListItem({
   // Get status badge
   const getStatusBadge = () => {
     switch (report.status) {
+      case "submitted":
+        return <Badge className="bg-yellow-500">Enviado</Badge>;
       case "pending":
         return <Badge className="bg-orange-500">Pendiente</Badge>;
       case "in_progress":
         return <Badge className="bg-blue-500">En Proceso</Badge>;
       case "resolved":
         return <Badge className="bg-green-500">Resuelto</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-500">Rechazado</Badge>;
       default:
         return null;
     }

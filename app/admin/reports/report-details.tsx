@@ -34,6 +34,8 @@ export function ReportDetails({
   const getStatusBadge = () => {
     const status = report.status?.toLowerCase() || "";
     switch (status) {
+      case "submitted":
+        return <Badge className="bg-yellow-500">Enviado</Badge>;
       case "pending":
         return <Badge className="bg-orange-500">Pendiente</Badge>;
       case "in_progress":
@@ -205,6 +207,28 @@ export function ReportDetails({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
+              {currentStatus === "submitted" && (
+                <>
+                  <Button
+                    className="gap-2"
+                    onClick={() => handleStatusChange("pending")}
+                    disabled={isSubmitting}
+                  >
+                    <Clock className="h-4 w-4" />
+                    Aprobar y Marcar Pendiente
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="gap-2"
+                    onClick={() => handleStatusChange("rejected")}
+                    disabled={isSubmitting}
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Rechazar Reporte
+                  </Button>
+                </>
+              )}
+
               {currentStatus === "pending" && (
                 <>
                   <Button

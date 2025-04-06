@@ -25,7 +25,7 @@ export interface Report {
   userId: string;
   picture: string;
   description: string;
-  status: "PENDING" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
+  status: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
   severity: "LOW" | "MEDIUM" | "HIGH";
   latitude: number;
   longitude: number;

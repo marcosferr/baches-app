@@ -5,11 +5,9 @@ Conectar APIs Backend con rutas
 - Dejar comentarios en un reporte 
 - Vista movil rutas  public-map 
 - Entrar a la vista de un solo reporte
-
-
-- Exportar reporte Admin 
 - Filtrado de reportes no aprovados
 - Aprobado por parte de autoridades
+- Exportar reporte Admin 
 
 
 - manejo de reportes mediante S3

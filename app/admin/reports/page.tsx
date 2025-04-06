@@ -11,6 +11,8 @@ import {
   Eye,
   MoreHorizontal,
   XCircle,
+  FileText,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +37,10 @@ import { ReportDetails } from "./report-details";
 import { ApiService } from "@/lib/api-service";
 import { Report } from "@/types";
 import { format } from "date-fns";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { CSVLink } from "react-csv";
+import ReportPDF from "./pdf-document";
+import { formatReportsForCSV } from "./export-utils";
 
 export default function AdminReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -184,6 +190,61 @@ export default function AdminReportsPage() {
           <p className="text-muted-foreground">
             Administra y actualiza el estado de los reportes de baches
           </p>
+        </div>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PDFDownloadLink
+                document={<ReportPDF reports={filteredReports} />}
+                fileName={`reportes-baches-${format(
+                  new Date(),
+                  "yyyy-MM-dd"
+                )}.pdf`}
+              >
+                {({ loading }) => (
+                  <DropdownMenuItem disabled={loading}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    {loading ? "Generando PDF..." : "Exportar a PDF"}
+                  </DropdownMenuItem>
+                )}
+              </PDFDownloadLink>
+
+              <CSVLink
+                data={formatReportsForCSV(filteredReports).data}
+                headers={formatReportsForCSV(filteredReports).headers}
+                filename={`reportes-baches-${format(
+                  new Date(),
+                  "yyyy-MM-dd"
+                )}.csv`}
+                className="w-full"
+              >
+                <DropdownMenuItem>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Exportar a CSV
+                </DropdownMenuItem>
+              </CSVLink>
+
+              <DropdownMenuItem asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() =>
+                    (window.location.href = "/admin/reports/export")
+                  }
+                >
+                  <Filter className="mr-2 h-4 w-4" />
+                  Opciones avanzadas
+                </Button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

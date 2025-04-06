@@ -10,6 +10,7 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   extensions = [postgis]
+  directUrl  = env("DIRECT_URL")
 }
 
 model User {

@@ -1,0 +1,1 @@
+release: node prisma/production-migrate.js

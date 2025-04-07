@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AdminChart } from "./admin-chart";
 import { AdminMap } from "./admin-map";
+import ReportAnalytics from "./report-analytics";
 import { ApiService } from "@/lib/api-service";
 
 export default function AdminDashboardPage() {
@@ -189,6 +190,7 @@ export default function AdminDashboardPage() {
           <TabsList>
             <TabsTrigger value="statistics">Estadísticas</TabsTrigger>
             <TabsTrigger value="map">Mapa de Calor</TabsTrigger>
+            <TabsTrigger value="analytics">Análisis de Tiempos</TabsTrigger>
           </TabsList>
           <TabsContent value="statistics" className="mt-6">
             <Card>
@@ -217,6 +219,9 @@ export default function AdminDashboardPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="analytics" className="mt-6">
+            <ReportAnalytics />
           </TabsContent>
         </Tabs>
 

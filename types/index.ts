@@ -34,6 +34,7 @@ export interface Report {
   updatedAt: Date;
   user?: User;
   comments?: Comment[];
+  timeline?: ReportTimeline[];
 }
 
 export interface ReportFilterOptions {
@@ -80,4 +81,33 @@ export interface NotificationPreferences {
   reportUpdates: boolean;
   comments: boolean;
   email: boolean;
+}
+
+// ReportTimeline related types
+export interface ReportTimeline {
+  id: string;
+  reportId: string;
+  previousStatus?:
+    | "SUBMITTED"
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "RESOLVED"
+    | "REJECTED";
+  newStatus: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
+  changedById: string;
+  changedBy?: User;
+  notes?: string;
+  createdAt: Date;
+}
+
+// Report Analytics types
+export interface ReportTimeMetrics {
+  averageResolutionTime: number; // in milliseconds
+  averageTimeInProgress: number; // in milliseconds
+  averageTimeToApprove: number; // in milliseconds (SUBMITTED -> PENDING)
+  totalResolvedCount: number;
+  totalInProgressCount: number;
+  totalPendingCount: number;
+  totalSubmittedCount: number;
+  totalRejectedCount: number;
 }

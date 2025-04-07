@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -9,8 +6,8 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [postgis]
   directUrl  = env("DIRECT_URL")
+  extensions = [postgis]
 }
 
 model User {
@@ -20,42 +17,44 @@ model User {
   password                String
   role                    Role                    @default(CITIZEN)
   avatar                  String?
-  reports                 Report[]
-  comments                Comment[]
-  notifications           Notification[]
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
+  comments                Comment[]
+  notifications           Notification[]
   notificationPreferences NotificationPreference?
+  reports                 Report[]
+  reportTimelines         ReportTimeline[]
 }
 
 model Report {
-  id          String                                @id @default(cuid())
+  id          String                   @id @default(cuid())
   picture     String
   description String
   severity    Severity
-  status      Status                                @default(SUBMITTED)
+  status      Status                   @default(SUBMITTED)
   latitude    Float
   longitude   Float
   address     String?
-  location    Unsupported("geometry(Point, 4326)")? @default(dbgenerated("ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)"))
-  comments    Comment[]
-  author      User                                  @relation(fields: [authorId], references: [id])
   authorId    String
-  createdAt   DateTime                              @default(now())
-  updatedAt   DateTime                              @updatedAt
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  location    Unsupported("geometry")?
+  comments    Comment[]
+  timeline    ReportTimeline[]
+  author      User                     @relation(fields: [authorId], references: [id])
 
-  @@index([location], name: "location_idx", type: Gist)
+  @@index([location], map: "location_idx", type: Gist)
 }
 
 model Comment {
   id        String   @id @default(cuid())
   text      String
-  report    Report   @relation(fields: [reportId], references: [id])
   reportId  String
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  report    Report   @relation(fields: [reportId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Notification {
@@ -65,21 +64,44 @@ model Notification {
   type      NotificationType
   read      Boolean          @default(false)
   relatedId String?
-  user      User             @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [id])
 }
 
 model NotificationPreference {
   id            String   @id @default(cuid())
   userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
   reportUpdates Boolean  @default(true)
   comments      Boolean  @default(true)
   email         Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model ReportTimeline {
+  id             String   @id @default(cuid())
+  reportId       String
+  previousStatus Status?
+  newStatus      Status
+  changedById    String
+  notes          String?
+  createdAt      DateTime @default(now())
+  report         Report   @relation(fields: [reportId], references: [id])
+  changedBy      User     @relation(fields: [changedById], references: [id])
+
+  @@index([reportId])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }
 
 enum Role {

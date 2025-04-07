@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notification-service";
+import { createTimelineEntry } from "@/lib/report-timeline-service";
 import { createReportSchema, updateReportSchema } from "@/lib/validations";
 import { RateLimiter } from "@/lib/rate-limiter";
 import { toReportDTO, toArrayDTO } from "@/lib/dto";
@@ -184,6 +185,14 @@ export async function createReport(data: CreateReportData) {
       },
     });
 
+    // Create initial timeline entry
+    await createTimelineEntry({
+      reportId: report.id,
+      newStatus: Status.SUBMITTED,
+      changedById: session.user.id,
+      notes: "Report created",
+    });
+
     // Notify admins about new report
     const admins = await prisma.user.findMany({
       where: {
@@ -316,8 +325,17 @@ export async function updateReport(
       data: updateData,
     });
 
-    // Create notification if status changed by admin
+    // Create timeline entry if status changed
     if (status && isAdmin && status !== existingReport.status) {
+      // Create timeline entry
+      await createTimelineEntry({
+        reportId: id,
+        previousStatus: existingReport.status as Status,
+        newStatus: status as Status,
+        changedById: session.user.id,
+      });
+
+      // Create notification for status change
       let statusMessage = "";
 
       switch (status) {

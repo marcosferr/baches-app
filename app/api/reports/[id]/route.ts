@@ -4,7 +4,9 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
+import { createTimelineEntry } from "@/lib/report-timeline-service";
 import { toReportDTO } from "@/lib/dto";
+import { Status } from "@prisma/client";
 
 // Get a specific report
 export async function GET(
@@ -146,8 +148,17 @@ export async function PATCH(
       },
     });
 
-    // Create notification if status changed by admin
+    // Create timeline entry if status changed
     if (status && isAdmin && status !== existingReport.status) {
+      // Create timeline entry
+      await createTimelineEntry({
+        reportId: id,
+        previousStatus: existingReport.status as Status,
+        newStatus: status as Status,
+        changedById: session.user.id,
+      });
+
+      // Create notification for status change
       let statusMessage = "";
 
       switch (status) {

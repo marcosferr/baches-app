@@ -1,4 +1,10 @@
 - resolución de dependencias de despliegue (actualmente se usa --legacy-peer-deps)
 - manejo de reportes mediante S3 (actualmente se guarda en BD como no se espera cantidad de usuarios grande)  
 - audit de seguridad (se implementó uso de DTOs para evitar exposición de datos sensibles)
-- 
+- testear funcionalidades (rate-limiter)
+- implementar rate-limiter mas robusto
+- implementar logging estructurado
+- Monitoreo de errores
+- crear sistema de badges, gamificacion con badges para los top usuarios
+- agregar pruebas automatizadas
+

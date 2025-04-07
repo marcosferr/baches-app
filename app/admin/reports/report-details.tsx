@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Clock, XCircle, MessageSquare } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  MessageSquare,
+  History,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Report } from "@/types";
 import { format } from "date-fns";
+import ReportTimelineView from "./report-timeline";
 
 interface ReportDetailsProps {
   report: Report;
@@ -123,6 +130,12 @@ export function ReportDetails({
         <Tabs defaultValue="details">
           <TabsList>
             <TabsTrigger value="details">Detalles</TabsTrigger>
+            <TabsTrigger value="timeline">
+              <div className="flex items-center gap-1">
+                <History className="h-4 w-4" />
+                <span>Historial</span>
+              </div>
+            </TabsTrigger>
             <TabsTrigger value="actions">Acciones</TabsTrigger>
           </TabsList>
 
@@ -191,6 +204,10 @@ export function ReportDetails({
               </h3>
               <p>{report.description}</p>
             </div>
+          </TabsContent>
+
+          <TabsContent value="timeline" className="space-y-4 pt-4">
+            <ReportTimelineView reportId={report.id} />
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-4 pt-4">

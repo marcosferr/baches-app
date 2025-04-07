@@ -34,6 +34,8 @@ import type {
   CreateReportDTO,
   CreateCommentDTO,
   User,
+  ReportTimeline,
+  ReportTimeMetrics,
 } from "@/types";
 
 // API Service
@@ -264,6 +266,34 @@ export const ApiService = {
       return updatedPreferences;
     } catch (error) {
       console.error("Error updating notification preferences:", error);
+      throw error;
+    }
+  },
+
+  // Report Timeline
+  getReportTimeline: async (reportId: string): Promise<ReportTimeline[]> => {
+    try {
+      const response = await fetch(`/api/reports/${reportId}/timeline`);
+      if (!response.ok) {
+        throw new Error(`Error fetching timeline: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting report timeline:", error);
+      throw error;
+    }
+  },
+
+  // Report Analytics
+  getReportAnalytics: async (): Promise<ReportTimeMetrics> => {
+    try {
+      const response = await fetch("/api/reports/analytics");
+      if (!response.ok) {
+        throw new Error(`Error fetching analytics: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting report analytics:", error);
       throw error;
     }
   },

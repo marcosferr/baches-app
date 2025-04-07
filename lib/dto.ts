@@ -1,4 +1,10 @@
-import type { User, Report, Comment, Notification } from "@/types";
+import type {
+  User,
+  Report,
+  Comment,
+  Notification,
+  ReportTimeline,
+} from "@/types";
 
 /**
  * Data Transfer Object (DTO) utilities
@@ -24,7 +30,11 @@ export function toUserDTO(user: any): Omit<User, "email"> {
  * Transforms a user object into a minimal DTO with only basic identification
  * Used when including user references in other DTOs
  */
-export function toMinimalUserDTO(user: any): { id: string; name: string; avatar: string | null } {
+export function toMinimalUserDTO(user: any): {
+  id: string;
+  name: string;
+  avatar: string | null;
+} {
   return {
     id: user.id,
     name: user.name,
@@ -35,7 +45,9 @@ export function toMinimalUserDTO(user: any): { id: string; name: string; avatar:
 /**
  * Transforms a report object into a safe DTO
  */
-export function toReportDTO(report: any): Omit<Report, "userId"> & { author?: ReturnType<typeof toMinimalUserDTO> } {
+export function toReportDTO(
+  report: any
+): Omit<Report, "userId"> & { author?: ReturnType<typeof toMinimalUserDTO> } {
   const result: any = {
     id: report.id,
     picture: report.picture,
@@ -66,13 +78,20 @@ export function toReportDTO(report: any): Omit<Report, "userId"> & { author?: Re
     result.comments = report.comments.map(toCommentDTO);
   }
 
+  // Include timeline if available
+  if (report.timeline) {
+    result.timeline = report.timeline.map(toReportTimelineDTO);
+  }
+
   return result;
 }
 
 /**
  * Transforms a comment object into a safe DTO
  */
-export function toCommentDTO(comment: any): Omit<Comment, "userId"> & { user?: ReturnType<typeof toMinimalUserDTO> } {
+export function toCommentDTO(
+  comment: any
+): Omit<Comment, "userId"> & { user?: ReturnType<typeof toMinimalUserDTO> } {
   const result: any = {
     id: comment.id,
     reportId: comment.reportId,
@@ -105,8 +124,33 @@ export function toNotificationDTO(notification: any): Notification {
 }
 
 /**
+ * Transforms a report timeline entry into a safe DTO
+ */
+export function toReportTimelineDTO(timeline: any): ReportTimeline {
+  const result: any = {
+    id: timeline.id,
+    reportId: timeline.reportId,
+    previousStatus: timeline.previousStatus,
+    newStatus: timeline.newStatus,
+    changedById: timeline.changedById,
+    notes: timeline.notes,
+    createdAt: timeline.createdAt,
+  };
+
+  // Include minimal user information if available
+  if (timeline.changedBy) {
+    result.changedBy = toMinimalUserDTO(timeline.changedBy);
+  }
+
+  return result;
+}
+
+/**
  * Transforms an array of any entity type using the appropriate DTO transformer
  */
-export function toArrayDTO<T>(items: any[], transformer: (item: any) => T): T[] {
+export function toArrayDTO<T>(
+  items: any[],
+  transformer: (item: any) => T
+): T[] {
   return items.map(transformer);
 }

@@ -10,5 +10,6 @@ Conectar APIs Backend con rutas
 - Exportar reporte Admin 
 
 
+- resolución de dependencias de despliegue
 - manejo de reportes mediante S3
 

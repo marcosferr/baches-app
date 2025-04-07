@@ -1,5 +1,5 @@
 -- Check if Role enum exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Role') THEN
         CREATE TYPE "Role" AS ENUM ('ADMIN', 'CITIZEN');
@@ -7,7 +7,7 @@ BEGIN
 END $$;
 
 -- Check if Severity enum exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Severity') THEN
         CREATE TYPE "Severity" AS ENUM ('LOW', 'MEDIUM', 'HIGH');
@@ -15,7 +15,7 @@ BEGIN
 END $$;
 
 -- Check if Status enum exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'Status') THEN
         CREATE TYPE "Status" AS ENUM ('SUBMITTED', 'PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED');
@@ -23,7 +23,7 @@ BEGIN
 END $$;
 
 -- Check if NotificationType enum exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'NotificationType') THEN
         CREATE TYPE "NotificationType" AS ENUM ('REPORT_STATUS', 'COMMENT', 'APPROVAL', 'PRIORITY');
@@ -31,7 +31,7 @@ BEGIN
 END $$;
 
 -- Check if User table exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'User') THEN
         CREATE TABLE "User" (
@@ -50,7 +50,7 @@ BEGIN
 END $$;
 
 -- Check if Report table exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Report') THEN
         CREATE TABLE "Report" (
@@ -72,7 +72,7 @@ BEGIN
 END $$;
 
 -- Check if Comment table exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Comment') THEN
         CREATE TABLE "Comment" (
@@ -89,7 +89,7 @@ BEGIN
 END $$;
 
 -- Check if Notification table exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Notification') THEN
         CREATE TABLE "Notification" (
@@ -109,7 +109,7 @@ BEGIN
 END $$;
 
 -- Check if NotificationPreference table exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'NotificationPreference') THEN
         CREATE TABLE "NotificationPreference" (
@@ -127,7 +127,7 @@ BEGIN
 END $$;
 
 -- Check if User_email_key index exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'User_email_key') THEN
         CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -135,7 +135,7 @@ BEGIN
 END $$;
 
 -- Check if NotificationPreference_userId_key index exists before creating
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'NotificationPreference_userId_key') THEN
         CREATE UNIQUE INDEX "NotificationPreference_userId_key" ON "NotificationPreference"("userId");
@@ -143,24 +143,24 @@ BEGIN
 END $$;
 
 -- Check if foreign keys exist before adding them
-DO $$
+DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'Report_authorId_fkey') THEN
         ALTER TABLE "Report" ADD CONSTRAINT "Report_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;
-
+    
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'Comment_reportId_fkey') THEN
         ALTER TABLE "Comment" ADD CONSTRAINT "Comment_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "Report"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;
-
+    
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'Comment_userId_fkey') THEN
         ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;
-
+    
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'Notification_userId_fkey') THEN
         ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;
-
+    
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'NotificationPreference_userId_fkey') THEN
         ALTER TABLE "NotificationPreference" ADD CONSTRAINT "NotificationPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
     END IF;

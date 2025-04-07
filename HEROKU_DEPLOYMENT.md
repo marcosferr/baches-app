@@ -89,18 +89,31 @@ heroku config:set NEXTAUTH_SECRET=your-strong-secret-key-here
 heroku config:set DEBUG_DISABLE_AUTH=FALSE
 ```
 
-## Step 6: Deploy to Heroku
+## Step 6: Update Dependencies and Generate package-lock.json
+
+Before deploying, you need to ensure your package.json and package-lock.json are in sync. Run the provided script:
 
 ```bash
-# Commit your changes
+node update-dependencies.js
+```
+
+This script will:
+
+1. Update package.json with compatible versions of dependencies
+2. Run npm install to generate a new package-lock.json file
+
+## Step 7: Deploy to Heroku
+
+```bash
+# Commit your changes including package-lock.json
 git add .
-git commit -m "Configure for Heroku deployment"
+git commit -m "Configure for Heroku deployment with updated dependencies"
 
 # Push to Heroku
 git push heroku main
 ```
 
-## Step 7: Run Database Migrations
+## Step 8: Run Database Migrations
 
 The migrations will run automatically during the release phase, but you can also run them manually:
 
@@ -108,7 +121,7 @@ The migrations will run automatically during the release phase, but you can also
 heroku run npx prisma migrate deploy
 ```
 
-## Step 8: Seed the Database (Optional)
+## Step 9: Seed the Database (Optional)
 
 If you want to seed the database with initial data:
 
@@ -127,6 +140,22 @@ If you encounter dependency conflicts during deployment, you may need to update 
 "@auth/prisma-adapter": "2.7.2",
 "next-auth": "4.24.11"
 ```
+
+### Package Lock Issues
+
+Heroku uses `npm ci` for installation, which requires package-lock.json to be in sync with package.json. If you see errors like:
+
+```
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync.
+```
+
+Run the provided script to update dependencies and generate a new package-lock.json file:
+
+```bash
+node update-dependencies.js
+```
+
+Then commit both files before deploying.
 
 ### Database Connection Issues
 

@@ -18,6 +18,7 @@ interface PublicMapComponentProps {
   onReportSelect: (report: Report) => void;
   selectedReport: Report | null;
   mapRef: React.RefObject<any>;
+  isLoading?: boolean;
 }
 
 export function PublicMapComponent({
@@ -25,6 +26,7 @@ export function PublicMapComponent({
   onReportSelect,
   selectedReport,
   mapRef,
+  isLoading = false,
 }: PublicMapComponentProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
@@ -257,6 +259,14 @@ export function PublicMapComponent({
   return (
     <div className="map-container">
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
+      {isLoading && (
+        <div className="map-loading">
+          <div className="loading-content">
+            <div className="loading-spinner" />
+            <p>Cargando reportes...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

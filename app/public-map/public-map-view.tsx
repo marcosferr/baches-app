@@ -299,6 +299,7 @@ export default function PublicMapView() {
         <FallbackMap
           reports={filteredReports}
           onReportSelect={handleReportSelect}
+          isLoading={isLoading}
         />
       );
     }
@@ -320,6 +321,7 @@ export default function PublicMapView() {
         onReportSelect={handleReportSelect}
         selectedReport={selectedReport}
         mapRef={mapRef}
+        isLoading={isLoading}
       />
     );
   };

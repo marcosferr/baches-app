@@ -7,9 +7,14 @@ import type { Report } from "@/types";
 interface FallbackMapProps {
   reports: Report[];
   onReportSelect: (report: Report) => void;
+  isLoading?: boolean;
 }
 
-export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
+export function FallbackMap({
+  reports,
+  onReportSelect,
+  isLoading = false,
+}: FallbackMapProps) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-muted/20">
       <div className="mb-4 text-center">
@@ -29,40 +34,49 @@ export function FallbackMap({ reports, onReportSelect }: FallbackMapProps) {
           Reportes disponibles ({reports.length})
         </h4>
         <div className="max-h-[300px] overflow-y-auto rounded-lg border bg-background p-2">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="mb-2 cursor-pointer rounded-md border p-2 hover:bg-muted/50"
-              onClick={() => onReportSelect(report)}
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 overflow-hidden rounded-md">
-                  <img
-                    src={report.picture || "/placeholder.svg"}
-                    alt="Bache"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">
-                    {report.address ||
-                      `${report.latitude.toFixed(
-                        6
-                      )}, ${report.longitude.toFixed(6)}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {report.status === "pending"
-                      ? "Pendiente"
-                      : report.status === "in_progress"
-                      ? "En proceso"
-                      : "Resuelto"}
-                  </p>
+          {isLoading ? (
+            <div className="p-4 text-center">
+              <div className="loading-spinner mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Cargando reportes...
+              </p>
+            </div>
+          ) : (
+            reports.map((report) => (
+              <div
+                key={report.id}
+                className="mb-2 cursor-pointer rounded-md border p-2 hover:bg-muted/50"
+                onClick={() => onReportSelect(report)}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 overflow-hidden rounded-md">
+                    <img
+                      src={report.picture || "/placeholder.svg"}
+                      alt="Bache"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {report.address ||
+                        `${report.latitude.toFixed(
+                          6
+                        )}, ${report.longitude.toFixed(6)}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {report.status === "pending"
+                        ? "Pendiente"
+                        : report.status === "in_progress"
+                        ? "En proceso"
+                        : "Resuelto"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
 
-          {reports.length === 0 && (
+          {!isLoading && reports.length === 0 && (
             <div className="p-4 text-center text-sm text-muted-foreground">
               No hay reportes disponibles
             </div>

@@ -4,6 +4,7 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
+import { toReportDTO } from "@/lib/dto";
 
 // Get a specific report
 export async function GET(
@@ -46,7 +47,10 @@ export async function GET(
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    return NextResponse.json(report);
+    // Transform report to DTO to remove sensitive information
+    const reportDTO = toReportDTO(report);
+
+    return NextResponse.json(reportDTO);
   } catch (error) {
     console.error("[REPORT_GET]", error);
     return NextResponse.json(
@@ -176,7 +180,10 @@ export async function PATCH(
       });
     }
 
-    return NextResponse.json(updatedReport);
+    // Transform report to DTO to remove sensitive information
+    const reportDTO = toReportDTO(updatedReport);
+
+    return NextResponse.json(reportDTO);
   } catch (error) {
     console.error("[REPORT_PATCH]", error);
     return NextResponse.json(

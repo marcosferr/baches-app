@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notification-service";
 import { createReportSchema, updateReportSchema } from "@/lib/validations";
 import { RateLimiter } from "@/lib/rate-limiter";
+import { toReportDTO, toArrayDTO } from "@/lib/dto";
 import type { z } from "zod";
 import { Severity, Status } from "@prisma/client";
 
@@ -89,8 +90,11 @@ export async function getReports(filters?: {
     // Get total count for pagination
     const total = await prisma.report.count({ where });
 
+    // Transform reports to DTOs to remove sensitive information
+    const reportDTOs = toArrayDTO(reports, toReportDTO);
+
     return {
-      reports,
+      reports: reportDTOs,
       pagination: {
         page,
         limit,
@@ -139,7 +143,8 @@ export async function getReportById(id: string) {
       throw new Error("Report not found");
     }
 
-    return report;
+    // Transform report to DTO to remove sensitive information
+    return toReportDTO(report);
   } catch (error) {
     console.error("Error getting report:", error);
     throw new Error("Failed to fetch report");

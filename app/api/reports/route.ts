@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
 import { RateLimiter } from "@/lib/rate-limiter";
+import { toReportDTO, toArrayDTO } from "@/lib/dto";
 
 // Rate limiter: max 5 report creations per hour
 const createReportLimiter = new RateLimiter({
@@ -97,8 +98,11 @@ export async function GET(request: Request) {
     // Get total count for pagination
     const total = await prisma.report.count({ where });
 
+    // Transform reports to DTOs to remove sensitive information
+    const reportDTOs = toArrayDTO(reports, toReportDTO);
+
     return NextResponse.json({
-      reports,
+      reports: reportDTOs,
       pagination: {
         page,
         limit,
@@ -193,7 +197,10 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json(report, { status: 201 });
+    // Transform report to DTO to remove sensitive information
+    const reportDTO = toReportDTO(report);
+
+    return NextResponse.json(reportDTO, { status: 201 });
   } catch (error) {
     console.error("[REPORTS_POST]", error);
     return NextResponse.json(

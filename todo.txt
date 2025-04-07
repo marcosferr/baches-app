@@ -1,15 +1,4 @@
-Conectar APIs Backend con rutas
-- Comentarios
-- Mapa Baches con Comentarios 
-- Mapa público sin capacidad de poder poner Comentarios
-- Dejar comentarios en un reporte 
-- Vista movil rutas  public-map 
-- Entrar a la vista de un solo reporte
-- Filtrado de reportes no aprovados
-- Aprobado por parte de autoridades
-- Exportar reporte Admin 
-
-
-- resolución de dependencias de despliegue
-- manejo de reportes mediante S3
-
+- resolución de dependencias de despliegue (actualmente se usa --legacy-peer-deps)
+- manejo de reportes mediante S3 (actualmente se guarda en BD como no se espera cantidad de usuarios grande)  
+- audit de seguridad (se implementó uso de DTOs para evitar exposición de datos sensibles)
+- 

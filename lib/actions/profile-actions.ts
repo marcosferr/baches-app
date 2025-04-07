@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { toUserDTO, toReportDTO, toCommentDTO, toArrayDTO } from "@/lib/dto";
 
 interface ProfileUpdateData {
   name?: string;
@@ -36,7 +37,18 @@ export async function getProfile() {
       throw new Error("User not found");
     }
 
-    return { user };
+    // For the user's own profile, we can include email
+    // We're not using toUserDTO here because the user should see their own email
+    const userDTO = {
+      id: user.id,
+      name: user.name,
+      email: user.email, // Include email for the user's own profile
+      avatar: user.avatar || null,
+      role: user.role?.toLowerCase(),
+      createdAt: user.createdAt,
+    };
+
+    return { user: userDTO };
   } catch (error) {
     console.error("[PROFILE_GET_ERROR]", error);
     throw error;
@@ -66,7 +78,16 @@ export async function updateProfile(data: ProfileUpdateData) {
     });
 
     revalidatePath("/profile");
-    return { user };
+    // For the user's own profile, we can include email
+    const userDTO = {
+      id: user.id,
+      name: user.name,
+      email: user.email, // Include email for the user's own profile
+      avatar: user.avatar || null,
+      role: user.role?.toLowerCase(),
+    };
+
+    return { user: userDTO };
   } catch (error) {
     console.error("[PROFILE_UPDATE_ERROR]", error);
     throw error;

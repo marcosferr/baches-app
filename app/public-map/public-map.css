@@ -143,6 +143,27 @@
   .leaflet-control-zoom {
     margin-top: 70px !important;
   }
+
+  .leaflet-popup-content {
+    width: 220px !important;
+  }
+
+  .popup-image {
+    height: 100px;
+  }
+
+  .popup-header {
+    padding: 10px 10px 6px 10px;
+  }
+
+  .popup-description {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .popup-badges {
+    flex-wrap: wrap;
+  }
 }
 
 /* Override z-index of Leaflet elements to play nice with our UI */

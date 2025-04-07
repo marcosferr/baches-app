@@ -83,7 +83,6 @@ export default function ReportPage() {
           setLocation(newLocation);
         },
         (error) => {
-          console.error("Error obteniendo la ubicación:", error);
           toast({
             title: "Error de geolocalización",
             description:
@@ -163,8 +162,10 @@ export default function ReportPage() {
 
   return (
     <ProtectedRoute allowedRoles={["citizen", "admin"]}>
-      <div className="container mx-auto py-8">
-        <h1 className="mb-6 text-3xl font-bold">Reportar un Bache</h1>
+      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8">
+        <h1 className="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">
+          Reportar un Bache
+        </h1>
 
         {isSuccess ? (
           <Card className="bg-green-50 dark:bg-green-900/20">
@@ -182,7 +183,7 @@ export default function ReportPage() {
           </Card>
         ) : (
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Información del Bache</CardTitle>
@@ -307,7 +308,7 @@ export default function ReportPage() {
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="search" className="space-y-4">
-                      <div className="h-[300px] w-full overflow-hidden rounded-lg border">
+                      <div className="h-[250px] sm:h-[300px] w-full overflow-hidden rounded-lg border">
                         <ReportMap
                           key="search-map"
                           onLocationSelect={handleLocationSelect}
@@ -321,7 +322,7 @@ export default function ReportPage() {
                       </p>
                     </TabsContent>
                     <TabsContent value="current" className="space-y-4">
-                      <div className="h-[300px] w-full overflow-hidden rounded-lg border">
+                      <div className="h-[250px] sm:h-[300px] w-full overflow-hidden rounded-lg border">
                         <ReportMap
                           key="current-map"
                           onLocationSelect={handleLocationSelect}

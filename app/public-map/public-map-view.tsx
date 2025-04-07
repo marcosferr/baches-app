@@ -62,10 +62,8 @@ export default function PublicMapView() {
           status: ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"],
         });
         setReports(fetchedReports);
-        console.log("Fetched reports:", fetchedReports);
         setFilteredReports(fetchedReports);
       } catch (error) {
-        console.error("Error fetching reports:", error);
         toast({
           title: "Error",
           description:

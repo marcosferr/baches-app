@@ -2,15 +2,7 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
-// Debug mode - set to true to disable route protection for development
-const DEBUG_DISABLE_AUTH = true;
-
 export async function middleware(request: NextRequest) {
-  // Skip auth checks if debug mode is enabled
-  if (DEBUG_DISABLE_AUTH) {
-    return NextResponse.next();
-  }
-
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,

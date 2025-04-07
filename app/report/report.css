@@ -9,3 +9,19 @@
   height: 100%;
 }
 
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .leaflet-control-zoom {
+    margin-top: 10px !important;
+  }
+
+  .leaflet-control-attribution {
+    font-size: 8px !important;
+  }
+
+  /* Make form elements more touch-friendly */
+  .radio-group-item {
+    min-width: 24px;
+    min-height: 24px;
+  }
+}

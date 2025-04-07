@@ -10,7 +10,7 @@ import { toReportDTO, toArrayDTO } from "@/lib/dto";
 // Rate limiter: max 5 report creations per hour
 const createReportLimiter = new RateLimiter({
   interval: 60 * 60 * 1000, // 1 hour
-  maxRequests: 5,
+  maxRequests: 20,
 });
 
 // Get all reports (with optional filters)

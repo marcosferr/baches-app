@@ -95,6 +95,16 @@ model ReportTimeline {
   @@index([reportId])
 }
 
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+  status    String   @default("PENDING") // PENDING, REVIEWED, RESPONDED
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model spatial_ref_sys {
   srid      Int     @id

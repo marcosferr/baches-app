@@ -1,13 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Map, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Hero Section */}
       <section className="relative flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-white px-4 py-20 text-center dark:from-orange-950 dark:to-background md:py-32">
+        <div className="absolute top-4 right-4">
+          <ThemeSwitch />
+        </div>
         <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
           Sistema de Reporte de Baches
         </h1>

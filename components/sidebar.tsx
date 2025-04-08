@@ -12,8 +12,6 @@ import {
   BarChart3,
   CheckSquare,
   LogOut,
-  Sun,
-  Moon,
   Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +24,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { useTheme } from "@/components/theme-provider";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 interface SidebarProps {
   userRole: "citizen" | "admin";
@@ -34,7 +32,7 @@ interface SidebarProps {
 
 export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+
   const { data: session, status } = useSession();
 
   // Use the authenticated user's role if available
@@ -156,18 +154,7 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
         <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Cambiar tema"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
+          <ThemeSwitch />
           {status === "authenticated" ? (
             <Button
               variant="ghost"

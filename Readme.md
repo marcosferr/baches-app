@@ -155,18 +155,101 @@ DEBUG_DISABLE_AUTH=false
 ### Diagrama de Entidad-Relación
 
 ```mermaid
-Diagrama ER.download-icon {
-            cursor: pointer;
-            transform-origin: center;
-        }
-        .download-icon .arrow-part {
-            transition: transform 0.35s cubic-bezier(0.35, 0.2, 0.14, 0.95);
-             transform-origin: center;
-        }
-        button:has(.download-icon):hover .download-icon .arrow-part, button:has(.download-icon):focus-visible .download-icon .arrow-part {
-          transform: translateY(-1.5px);
-        }
-        #mermaid-diagram-r3vl{font-family:var(--font-geist-sans);font-size:12px;fill:#000000;}#mermaid-diagram-r3vl .error-icon{fill:#552222;}#mermaid-diagram-r3vl .error-text{fill:#552222;stroke:#552222;}#mermaid-diagram-r3vl .edge-thickness-normal{stroke-width:1px;}#mermaid-diagram-r3vl .edge-thickness-thick{stroke-width:3.5px;}#mermaid-diagram-r3vl .edge-pattern-solid{stroke-dasharray:0;}#mermaid-diagram-r3vl .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-diagram-r3vl .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-diagram-r3vl .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-diagram-r3vl .marker{fill:#666;stroke:#666;}#mermaid-diagram-r3vl .marker.cross{stroke:#666;}#mermaid-diagram-r3vl svg{font-family:var(--font-geist-sans);font-size:12px;}#mermaid-diagram-r3vl p{margin:0;}#mermaid-diagram-r3vl .entityBox{fill:#eee;stroke:#999;}#mermaid-diagram-r3vl .attributeBoxOdd{fill:#ffffff;stroke:#999;}#mermaid-diagram-r3vl .attributeBoxEven{fill:#f2f2f2;stroke:#999;}#mermaid-diagram-r3vl .relationshipLabelBox{fill:hsl(-160, 0%, 93.3333333333%);opacity:0.7;background-color:hsl(-160, 0%, 93.3333333333%);}#mermaid-diagram-r3vl .relationshipLabelBox rect{opacity:0.5;}#mermaid-diagram-r3vl .relationshipLine{stroke:#666;}#mermaid-diagram-r3vl .entityTitleText{text-anchor:middle;font-size:18px;fill:#000000;}#mermaid-diagram-r3vl #MD_PARENT_START{fill:#f5f5f5!important;stroke:#666!important;stroke-width:1;}#mermaid-diagram-r3vl #MD_PARENT_END{fill:#f5f5f5!important;stroke:#666!important;stroke-width:1;}#mermaid-diagram-r3vl .flowchart-link{stroke:hsl(var(--gray-400));stroke-width:1px;}#mermaid-diagram-r3vl .marker,#mermaid-diagram-r3vl marker,#mermaid-diagram-r3vl marker *{fill:hsl(var(--gray-400))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-r3vl .label,#mermaid-diagram-r3vl text,#mermaid-diagram-r3vl text>tspan{fill:hsl(var(--black))!important;color:hsl(var(--black))!important;}#mermaid-diagram-r3vl .background,#mermaid-diagram-r3vl rect.relationshipLabelBox{fill:hsl(var(--white))!important;}#mermaid-diagram-r3vl .entityBox,#mermaid-diagram-r3vl .attributeBoxEven{fill:hsl(var(--gray-150))!important;}#mermaid-diagram-r3vl .attributeBoxOdd{fill:hsl(var(--white))!important;}#mermaid-diagram-r3vl .label-container,#mermaid-diagram-r3vl rect.actor{fill:hsl(var(--white))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-r3vl line{stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-r3vl :root{--mermaid-font-family:var(--font-geist-sans);}UserstringidPKstringnamestringemailstringpasswordenumrolestringavatardatetimecreatedAtdatetimeupdatedAtReportstringidPKstringpicturestringdescriptionenumseverityenumstatusfloatlatitudefloatlongitudestringaddressstringauthorIdFKdatetimecreatedAtdatetimeupdatedAtCommentstringidPKstringtextstringreportIdFKstringuserIdFKdatetimecreatedAtdatetimeupdatedAtNotificationstringidPKstringtitlestringmessageenumtypebooleanreadstringrelatedIdstringuserIdFKdatetimecreatedAtdatetimeupdatedAtNotificationPreferencestringidPKstringuserIdFKbooleanreportUpdatesbooleancommentsbooleanemaildatetimecreatedAtdatetimeupdatedAtcreaescriberecibeconfiguratiene
+erDiagram
+    User {
+        string id PK
+        string name
+        string email
+        string password
+        enum role
+        string avatar
+        datetime createdAt
+        datetime updatedAt
+    }
+    Report {
+        string id PK
+        string picture
+        string description
+        enum severity
+        enum status
+        float latitude
+        float longitude
+        string address
+        string authorId FK
+        datetime createdAt
+        datetime updatedAt
+        geometry location
+    }
+    Comment {
+        string id PK
+        string text
+        string reportId FK
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+    Notification {
+        string id PK
+        string title
+        string message
+        enum type
+        boolean read
+        string relatedId
+        string userId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+    NotificationPreference {
+        string id PK
+        string userId FK
+        boolean reportUpdates
+        boolean comments
+        boolean email
+        datetime createdAt
+        datetime updatedAt
+    }
+    ReportTimeline {
+        string id PK
+        string reportId FK
+        enum previousStatus
+        enum newStatus
+        string changedById FK
+        string notes
+        datetime createdAt
+    }
+    Contact {
+        string id PK
+        string name
+        string email
+        string subject
+        string message
+        datetime createdAt
+        string status
+    }
+    UserBadge {
+        string id PK
+        string userId FK
+        string badgeType
+        datetime earnedAt
+    }
+    LeaderboardEntry {
+        string id PK
+        string userId FK
+        string category
+        int score
+        int rank
+        datetime updatedAt
+    }
+
+    User ||--o{ Report : "creates"
+    User ||--o{ Comment : "writes"
+    User ||--o{ Notification : "receives"
+    User ||--|| NotificationPreference : "configures"
+    User ||--o{ ReportTimeline : "changes status"
+    User ||--o{ UserBadge : "earns"
+    User ||--o{ LeaderboardEntry : "ranks in"
+    Report ||--o{ Comment : "has"
+    Report ||--o{ ReportTimeline : "tracks history"
 ```
 
 ### Descripción de Modelos

@@ -6,6 +6,7 @@ export interface User {
   avatar?: string;
   role: "admin" | "citizen";
   createdAt: Date;
+  badges?: UserBadge[];
 }
 
 // Report related types
@@ -111,3 +112,96 @@ export interface ReportTimeMetrics {
   totalSubmittedCount: number;
   totalRejectedCount: number;
 }
+
+// Badge related types
+export interface UserBadge {
+  id: string;
+  userId: string;
+  badgeType: keyof typeof LEADERBOARD_CATEGORIES;
+  earnedAt: Date;
+  user?: User;
+}
+
+export interface UserBadgeDTO {
+  id: string;
+  badgeType: keyof typeof LEADERBOARD_CATEGORIES;
+  name: string;
+  description: string;
+  icon: string;
+  earnedAt: Date;
+}
+
+// Leaderboard related types
+export interface LeaderboardEntry {
+  id: string;
+  userId: string;
+  category: keyof typeof LEADERBOARD_CATEGORIES;
+  score: number;
+  rank: number;
+  updatedAt: Date;
+  user?: User;
+}
+
+export interface LeaderboardEntryDTO {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string | null;
+  };
+  category: keyof typeof LEADERBOARD_CATEGORIES;
+  categoryName: string;
+  categoryIcon: string;
+  score: number;
+  rank: number;
+}
+
+export interface LeaderboardCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export const LEADERBOARD_CATEGORIES = {
+  CAZADOR_DE_CRATERES: {
+    name: "Cazador de Cráteres",
+    description: "Mayor número de reportes de baches profundos",
+    icon: "🕵️‍♂️",
+  },
+  GUARDIAN_DEL_ASFALTO: {
+    name: "Guardián del Asfalto",
+    description: "Mayor número de reportes verificados como precisos",
+    icon: "🛡️",
+  },
+  FOTOGRAFO_URBANO: {
+    name: "Fotógrafo Urbano",
+    description: "Mejores fotos de reportes según votos",
+    icon: "📸",
+  },
+  DETECTIVE_NOCTURNO: {
+    name: "Detective Nocturno",
+    description: "Más reportes realizados entre 8PM y 6AM",
+    icon: "🌙",
+  },
+  HEROE_DEL_BARRIO: {
+    name: "Héroe del Barrio",
+    description: "Más reportes resueltos en una misma zona",
+    icon: "🦸‍♂️",
+  },
+  REPORTERO_VELOZ: {
+    name: "Reportero Veloz",
+    description: "Primero en reportar baches que luego fueron confirmados",
+    icon: "⚡",
+  },
+  CARTOGRAFO_URBANO: {
+    name: "Cartógrafo Urbano",
+    description: "Mayor cobertura de área en sus reportes",
+    icon: "🗺️",
+  },
+  MAESTRO_DEL_DETALLE: {
+    name: "Maestro del Detalle",
+    description: "Reportes con descripciones más completas",
+    icon: "🔍",
+  },
+} as const;

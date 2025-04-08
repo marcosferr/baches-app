@@ -36,6 +36,9 @@ import type {
   User,
   ReportTimeline,
   ReportTimeMetrics,
+  UserBadgeDTO,
+  LeaderboardEntryDTO,
+  LEADERBOARD_CATEGORIES,
 } from "@/types";
 
 // API Service
@@ -294,6 +297,70 @@ export const ApiService = {
       return await response.json();
     } catch (error) {
       console.error("Error getting report analytics:", error);
+      throw error;
+    }
+  },
+
+  // Badges
+  getUserBadges: async (): Promise<UserBadgeDTO[]> => {
+    try {
+      const response = await fetch("/api/user/badges");
+      if (!response.ok) {
+        throw new Error(`Error fetching badges: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.badges;
+    } catch (error) {
+      console.error("Error getting user badges:", error);
+      throw error;
+    }
+  },
+
+  // Leaderboard
+  getAllLeaderboards: async (limit = 5) => {
+    try {
+      const response = await fetch(`/api/leaderboard?limit=${limit}`);
+      if (!response.ok) {
+        throw new Error(`Error fetching leaderboards: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.leaderboards;
+    } catch (error) {
+      console.error("Error getting leaderboards:", error);
+      throw error;
+    }
+  },
+
+  getCategoryLeaderboard: async (
+    category: keyof typeof LEADERBOARD_CATEGORIES,
+    limit = 10
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/leaderboard/${category}?limit=${limit}`
+      );
+      if (!response.ok) {
+        throw new Error(`Error fetching leaderboard: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting category leaderboard:", error);
+      throw error;
+    }
+  },
+
+  getUserLeaderboardRanks: async () => {
+    try {
+      const response = await fetch("/api/user/leaderboard");
+      if (!response.ok) {
+        throw new Error(
+          `Error fetching user leaderboard ranks: ${response.statusText}`
+        );
+      }
+      const data = await response.json();
+      return data.entries;
+    } catch (error) {
+      console.error("Error getting user leaderboard ranks:", error);
       throw error;
     }
   },

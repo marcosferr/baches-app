@@ -4,6 +4,11 @@ import type {
   Comment,
   Notification,
   ReportTimeline,
+  UserBadge,
+  UserBadgeDTO,
+  LeaderboardEntry,
+  LeaderboardEntryDTO,
+  LEADERBOARD_CATEGORIES,
 } from "@/types";
 
 /**
@@ -17,13 +22,20 @@ import type {
  */
 export function toUserDTO(user: any): Omit<User, "email"> {
   // Return only safe user properties
-  return {
+  const result: any = {
     id: user.id,
     name: user.name,
     avatar: user.avatar || null,
     role: user.role?.toLowerCase() as "admin" | "citizen",
     createdAt: user.createdAt,
   };
+
+  // Include badges if available
+  if (user.badges) {
+    result.badges = user.badges.map(toBadgeDTO);
+  }
+
+  return result;
 }
 
 /**
@@ -143,6 +155,41 @@ export function toReportTimelineDTO(timeline: any): ReportTimeline {
   }
 
   return result;
+}
+
+/**
+ * Transforms a user badge into a DTO with category information
+ */
+export function toBadgeDTO(badge: any): UserBadgeDTO {
+  const badgeType = badge.badgeType as keyof typeof LEADERBOARD_CATEGORIES;
+  const categoryInfo = LEADERBOARD_CATEGORIES[badgeType];
+
+  return {
+    id: badge.id,
+    badgeType: badgeType,
+    name: categoryInfo.name,
+    description: categoryInfo.description,
+    icon: categoryInfo.icon,
+    earnedAt: badge.earnedAt,
+  };
+}
+
+/**
+ * Transforms a leaderboard entry into a DTO with user and category information
+ */
+export function toLeaderboardEntryDTO(entry: any): LeaderboardEntryDTO {
+  const category = entry.category as keyof typeof LEADERBOARD_CATEGORIES;
+  const categoryInfo = LEADERBOARD_CATEGORIES[category];
+
+  return {
+    id: entry.id,
+    user: toMinimalUserDTO(entry.user),
+    category: category,
+    categoryName: categoryInfo.name,
+    categoryIcon: categoryInfo.icon,
+    score: entry.score,
+    rank: entry.rank,
+  };
 }
 
 /**

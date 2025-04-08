@@ -11,6 +11,8 @@ import {
   Loader2,
   Clock,
   ChevronDown,
+  Trophy,
+  Medal,
 } from "lucide-react";
 import {
   Card,
@@ -31,6 +33,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ApiService } from "@/lib/api-service";
 import { ReportStatusBadge } from "@/components/reports/report-status-badge";
+import { UserBadges } from "@/components/user-badges";
+import { Leaderboard } from "@/components/leaderboard";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -224,6 +228,7 @@ export default function ProfilePage() {
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="security">Seguridad</TabsTrigger>
             <TabsTrigger value="preferences">Preferencias</TabsTrigger>
+            <TabsTrigger value="leaderboard">Clasificación</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -387,6 +392,8 @@ export default function ProfilePage() {
                     )}
                   </CardContent>
                 </Card>
+
+                <UserBadges showTitle={true} limit={6} />
               </div>
 
               <div className="md:col-span-2">
@@ -774,6 +781,12 @@ export default function ProfilePage() {
                   </Button>
                 </CardFooter>
               </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="leaderboard">
+            <div className="space-y-6">
+              <Leaderboard limit={5} />
             </div>
           </TabsContent>
         </Tabs>

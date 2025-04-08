@@ -9,6 +9,8 @@ import { createTimelineEntry } from "@/lib/report-timeline-service";
 import { createReportSchema, updateReportSchema } from "@/lib/validations";
 import { RateLimiter } from "@/lib/rate-limiter";
 import { toReportDTO, toArrayDTO } from "@/lib/dto";
+import { checkAndAwardBadges } from "@/lib/badge-service";
+import { updateLeaderboardScores } from "@/lib/leaderboard-service";
 import type { z } from "zod";
 import { Severity, Status } from "@prisma/client";
 
@@ -192,6 +194,12 @@ export async function createReport(data: CreateReportData) {
       changedById: session.user.id,
       notes: "Report created",
     });
+
+    // Check and award badges
+    await checkAndAwardBadges(session.user.id);
+
+    // Update leaderboard scores
+    await updateLeaderboardScores(session.user.id);
 
     // Notify admins about new report
     const admins = await prisma.user.findMany({

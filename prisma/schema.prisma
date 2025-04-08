@@ -24,6 +24,8 @@ model User {
   notificationPreferences NotificationPreference?
   reports                 Report[]
   reportTimelines         ReportTimeline[]
+  badges                  UserBadge[]
+  leaderboardEntries      LeaderboardEntry[]
 }
 
 model Report {
@@ -138,4 +140,28 @@ enum NotificationType {
   COMMENT
   APPROVAL
   PRIORITY
+  BADGE_EARNED
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeType String
+  earnedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, badgeType])
+}
+
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  score     Int
+  rank      Int
+  updatedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category])
+  @@index([category, score])
 }

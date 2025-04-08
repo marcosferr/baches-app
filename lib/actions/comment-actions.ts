@@ -8,6 +8,8 @@ import { createNotification } from "@/lib/notification-service";
 import { createCommentSchema, updateCommentSchema } from "@/lib/validations";
 import { RateLimiter } from "@/lib/rate-limiter";
 import { toCommentDTO, toArrayDTO } from "@/lib/dto";
+import { checkAndAwardBadges } from "@/lib/badge-service";
+import { updateLeaderboardScores } from "@/lib/leaderboard-service";
 import type { z } from "zod";
 
 // Rate limiter: max 10 comments per 5 minutes
@@ -122,6 +124,12 @@ export async function createComment(data: z.infer<typeof createCommentSchema>) {
         relatedId: comment.id,
       });
     }
+
+    // Check and award badges
+    await checkAndAwardBadges(session.user.id);
+
+    // Update leaderboard scores
+    await updateLeaderboardScores(session.user.id);
 
     // Revalidate the report page
     revalidatePath(`/reports/${reportId}`);

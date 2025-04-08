@@ -1,3 +1,4 @@
+import { LEADERBOARD_CATEGORIES } from "@/types";
 import type {
   User,
   Report,
@@ -8,7 +9,6 @@ import type {
   UserBadgeDTO,
   LeaderboardEntry,
   LeaderboardEntryDTO,
-  LEADERBOARD_CATEGORIES,
 } from "@/types";
 
 /**

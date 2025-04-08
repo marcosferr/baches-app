@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withCors } from "@/lib/apply-cors";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -14,7 +15,7 @@ const createReportLimiter = new RateLimiter({
 });
 
 // Get all reports (with optional filters)
-export async function GET(request: Request) {
+async function getReports(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
@@ -120,7 +121,7 @@ export async function GET(request: Request) {
 }
 
 // Create a new report
-export async function POST(request: Request) {
+async function createReport(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -209,3 +210,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// Export the handler functions with CORS support
+export const GET = withCors(getReports);
+export const POST = withCors(createReport);

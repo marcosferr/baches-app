@@ -4,4 +4,8 @@ DEBUG_DISABLE_AUTH=TRUE
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-strong-secret-key-here-replace-this-with-a-32-character-string
 
+# CORS Configuration
+# In production, this should be your frontend domain
+CORS_ALLOWED_ORIGIN=http://localhost:3000
+
 # Rename this to .env

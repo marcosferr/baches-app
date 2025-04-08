@@ -2,6 +2,19 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
+// CORS headers for API routes
+const corsHeaders = {
+  "Access-Control-Allow-Origin":
+    process.env.CORS_ALLOWED_ORIGIN ||
+    (process.env.NODE_ENV === "production"
+      ? process.env.NEXTAUTH_URL || "https://your-production-domain.com"
+      : "http://localhost:3000"),
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Max-Age": "86400", // 24 hours in seconds
+};
+
 export async function middleware(request: NextRequest) {
   const token = await getToken({
     req: request,
@@ -62,6 +75,29 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Handle CORS for API routes
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+
+  // Handle preflight OPTIONS request for API routes
+  if (isApiRoute && request.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
+
+  // Add CORS headers to API route responses
+  if (isApiRoute) {
+    const response = NextResponse.next();
+
+    // Add CORS headers to the response
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+
+    return response;
+  }
+
   return NextResponse.next();
 }
 
@@ -77,5 +113,6 @@ export const config = {
     "/register",
     "/forgot-password",
     "/reset-password/:path*",
+    "/api/:path*", // Add API routes to the matcher
   ],
 };

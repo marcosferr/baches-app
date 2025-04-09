@@ -1,23 +1,30 @@
-import { prisma } from "@/lib/prisma"
-import type { NotificationType } from "@prisma/client"
+import { prisma } from "@/lib/prisma";
+import type { NotificationType } from "@prisma/client";
+import { sendNotificationEmail } from "@/lib/email-service";
 
 interface CreateNotificationParams {
-  userId: string
-  title: string
-  message: string
-  type: NotificationType
-  relatedId?: string
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  relatedId?: string;
 }
 
 /**
  * Creates a notification for a user
  */
-export async function createNotification({ userId, title, message, type, relatedId }: CreateNotificationParams) {
+export async function createNotification({
+  userId,
+  title,
+  message,
+  type,
+  relatedId,
+}: CreateNotificationParams) {
   try {
     // Check if the user has disabled this type of notification
     const userPreferences = await prisma.notificationPreference.findUnique({
       where: { userId },
-    })
+    });
 
     // If user has explicitly disabled this notification type, don't create notification
     if (
@@ -25,7 +32,7 @@ export async function createNotification({ userId, title, message, type, related
       ((type === "REPORT_STATUS" && !userPreferences.reportUpdates) ||
         (type === "COMMENT" && !userPreferences.comments))
     ) {
-      return null
+      return null;
     }
 
     // Create the notification
@@ -40,21 +47,30 @@ export async function createNotification({ userId, title, message, type, related
           connect: { id: userId },
         },
       },
-    })
+    });
 
     // If email notifications are enabled and we have email service configured
     if (userPreferences?.email) {
-      // In a real implementation, send an email here
-      console.log(`Email notification would be sent to user ${userId}:`, {
-        title,
-        message,
-      })
+      // Get user email
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+
+      if (user?.email) {
+        // Send email notification
+        await sendNotificationEmail({
+          to: user.email,
+          title,
+          message,
+        });
+      }
     }
 
-    return notification
+    return notification;
   } catch (error) {
-    console.error("Error creating notification:", error)
-    throw error
+    console.error("Error creating notification:", error);
+    throw error;
   }
 }
 
@@ -71,10 +87,10 @@ export async function markNotificationAsRead(id: string, userId: string) {
       data: {
         read: true,
       },
-    })
+    });
   } catch (error) {
-    console.error("Error marking notification as read:", error)
-    throw error
+    console.error("Error marking notification as read:", error);
+    throw error;
   }
 }
 
@@ -91,10 +107,10 @@ export async function markAllNotificationsAsRead(userId: string) {
       data: {
         read: true,
       },
-    })
+    });
   } catch (error) {
-    console.error("Error marking all notifications as read:", error)
-    throw error
+    console.error("Error marking all notifications as read:", error);
+    throw error;
   }
 }
 
@@ -108,10 +124,9 @@ export async function deleteNotification(id: string, userId: string) {
         id,
         userId,
       },
-    })
+    });
   } catch (error) {
-    console.error("Error deleting notification:", error)
-    throw error
+    console.error("Error deleting notification:", error);
+    throw error;
   }
 }
-

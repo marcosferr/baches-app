@@ -4,6 +4,7 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { updateReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
+import { sendReportNotificationEmail } from "@/lib/email-service";
 import { createTimelineEntry } from "@/lib/report-timeline-service";
 import { toReportDTO } from "@/lib/dto";
 import { Status } from "@prisma/client";
@@ -189,6 +190,26 @@ export async function PATCH(
         type: "REPORT_STATUS",
         relatedId: id,
       });
+
+      // Send email notification about status change
+      try {
+        await sendReportNotificationEmail({
+          id: updatedReport.id,
+          description: updatedReport.description,
+          severity: updatedReport.severity,
+          status: updatedReport.status,
+          latitude: updatedReport.latitude,
+          longitude: updatedReport.longitude,
+          address: updatedReport.address || undefined,
+          authorName: updatedReport.author?.name || "Usuario",
+        });
+      } catch (emailError) {
+        // Log error but don't fail the update
+        console.error(
+          "Error sending status change email notification:",
+          emailError
+        );
+      }
     }
 
     // Transform report to DTO to remove sensitive information

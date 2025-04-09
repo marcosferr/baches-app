@@ -5,6 +5,7 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
+import { sendReportNotificationEmail } from "@/lib/email-service";
 import { RateLimiter } from "@/lib/rate-limiter";
 import { toReportDTO, toArrayDTO } from "@/lib/dto";
 
@@ -196,6 +197,23 @@ async function createReport(request: Request) {
         type: "REPORT_STATUS",
         relatedId: report.id,
       });
+    }
+
+    // Send email notification
+    try {
+      await sendReportNotificationEmail({
+        id: report.id,
+        description: report.description,
+        severity: report.severity,
+        status: report.status,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        address: report.address || undefined,
+        authorName: session.user.name || "Usuario",
+      });
+    } catch (emailError) {
+      // Log error but don't fail the report creation
+      console.error("Error sending email notification:", emailError);
     }
 
     // Transform report to DTO to remove sensitive information

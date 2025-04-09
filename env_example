@@ -8,4 +8,14 @@ NEXTAUTH_SECRET=your-strong-secret-key-here-replace-this-with-a-32-character-str
 # In production, this should be your frontend domain
 CORS_ALLOWED_ORIGIN=http://localhost:3000
 
+# Email Configuration
+EMAIL_HOST=smtp.hostinger.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
+EMAIL_USER=info@observatoriodatositapua.org
+EMAIL_PASSWORD=your-email-password
+EMAIL_FROM_NAME=Observatorio de Baches
+# You can specify multiple recipients by separating them with commas
+EMAIL_NOTIFICATION_RECIPIENT=admin@example.com,another@example.com
+
 # Rename this to .env

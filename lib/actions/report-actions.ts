@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notification-service";
+import { sendReportNotificationEmail } from "@/lib/email-service";
 import { createTimelineEntry } from "@/lib/report-timeline-service";
 import { createReportSchema, updateReportSchema } from "@/lib/validations";
 import { RateLimiter } from "@/lib/rate-limiter";
@@ -222,6 +223,23 @@ export async function createReport(data: CreateReportData) {
       });
     }
 
+    // Send email notification
+    try {
+      await sendReportNotificationEmail({
+        id: report.id,
+        description: report.description,
+        severity: report.severity,
+        status: report.status,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        address: report.address || undefined,
+        authorName: session.user.name || "Usuario",
+      });
+    } catch (emailError) {
+      // Log error but don't fail the report creation
+      console.error("Error sending email notification:", emailError);
+    }
+
     revalidatePath("/my-reports");
     return report;
   } catch (error) {
@@ -374,6 +392,40 @@ export async function updateReport(
         type: "REPORT_STATUS",
         relatedId: id,
       });
+
+      // Send email notification about status change
+      try {
+        // Get updated report with author information
+        const reportWithAuthor = await prisma.report.findUnique({
+          where: { id },
+          include: {
+            author: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+
+        if (reportWithAuthor) {
+          await sendReportNotificationEmail({
+            id: reportWithAuthor.id,
+            description: reportWithAuthor.description,
+            severity: reportWithAuthor.severity,
+            status: reportWithAuthor.status,
+            latitude: reportWithAuthor.latitude,
+            longitude: reportWithAuthor.longitude,
+            address: reportWithAuthor.address || undefined,
+            authorName: reportWithAuthor.author?.name || "Usuario",
+          });
+        }
+      } catch (emailError) {
+        // Log error but don't fail the update
+        console.error(
+          "Error sending status change email notification:",
+          emailError
+        );
+      }
     }
 
     // Revalidate report pages

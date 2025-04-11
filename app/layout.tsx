@@ -14,6 +14,26 @@ export const metadata: Metadata = {
   title: "Sistema de Reporte y Gestión de Baches",
   description: "Aplicación para reportar y gestionar baches en la vía pública",
   generator: "v0.dev",
+  openGraph: {
+    title: "Sistema de Reporte y Gestión de Baches",
+    description:
+      "Aplicación para reportar y gestionar baches en la vía pública",
+    images: [
+      {
+        url: "/og-image.jpg", // Place this image in your public folder
+        width: 1200,
+        height: 600,
+        alt: "Sistema de Reporte y Gestión de Baches",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sistema de Reporte y Gestión de Baches",
+    description:
+      "Aplicación para reportar y gestionar baches en la vía pública",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export const viewport: Viewport = {

@@ -150,7 +150,7 @@ model UserBadge {
   earnedAt  DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 
-  @@unique([userId, badgeType])
+  @@un`i`que([userId, badgeType])
 }
 
 model LeaderboardEntry {

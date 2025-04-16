@@ -1,6 +1,9 @@
 // app/ranking/page.tsx
 import { Suspense } from "react";
-import { getUsersByReportCount } from "@/lib/actions/leaderboard-actions";
+import {
+  getUsersByReportCount,
+  getUsersByReportCountInPeriod,
+} from "@/lib/actions/leaderboard-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
@@ -44,8 +47,12 @@ function RankingSkeleton() {
   );
 }
 
-async function UserReportRanking() {
-  const rankedUsers = await getUsersByReportCount(10);
+async function UserReportRanking({
+  period = "all",
+}: {
+  period?: "day" | "week" | "month" | "all";
+}) {
+  const rankedUsers = await getUsersByReportCountInPeriod(period, 10);
 
   return (
     <div className="space-y-4">
@@ -87,9 +94,34 @@ export default function RankingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<RankingSkeleton />}>
-            <UserReportRanking />
-          </Suspense>
+          <Tabs defaultValue="all">
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">Histórico</TabsTrigger>
+              <TabsTrigger value="month">Último mes</TabsTrigger>
+              <TabsTrigger value="week">Última semana</TabsTrigger>
+              <TabsTrigger value="day">Últimas 24h</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all">
+              <Suspense fallback={<RankingSkeleton />}>
+                <UserReportRanking period="all" />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="month">
+              <Suspense fallback={<RankingSkeleton />}>
+                <UserReportRanking period="month" />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="week">
+              <Suspense fallback={<RankingSkeleton />}>
+                <UserReportRanking period="week" />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="day">
+              <Suspense fallback={<RankingSkeleton />}>
+                <UserReportRanking period="day" />
+              </Suspense>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

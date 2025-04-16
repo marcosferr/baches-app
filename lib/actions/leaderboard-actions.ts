@@ -140,51 +140,38 @@ export async function getUsersByReportCountInPeriod(
             };
         }
 
-        // Consulta agrupando por usuario
-        const result = await prisma.report.groupBy({
-            by: ['authorId'],
-            _count: {
-                _all: true
-            },
-            where: dateFilter,
-            orderBy: [
-                {
-                    _count: {
-                        authorId: "desc"
-                    }
-                }
-            ],
-            take: limit
-        });
-
-        // Obtener información completa de los usuarios
-        const userIds = result.map(item => item.authorId);
-        const users = await prisma.user.findMany({
-            where: {
-                id: {
-                    in: userIds
-                }
-            },
+        // Obtener usuarios con conteo de reportes
+        const usersWithReports = await prisma.user.findMany({
             select: {
                 id: true,
                 name: true,
                 avatar: true,
-                role: true
-            }
+                role: true,
+                _count: {
+                    select: {
+                        reports: {
+                            where: dateFilter
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                reports: {
+                    _count: "desc"
+                }
+            },
+            take: limit
         });
 
-        // Combinar datos
-        const rankedUsers = result.map((item, index) => {
-            const user = users.find(u => u.id === item.authorId);
-            return {
-                id: item.authorId,
-                name: user?.name || 'Usuario desconocido',
-                avatar: user?.avatar,
-                role: user?.role,
-                reportCount: item._count ? item._count : 0,
-                rank: index + 1
-            };
-        });
+        // Formatear resultados
+        const rankedUsers = usersWithReports.map((user, index) => ({
+            id: user.id,
+            name: user.name || 'Usuario desconocido',
+            avatar: user.avatar,
+            role: user.role,
+            reportCount: user._count.reports,
+            rank: index + 1
+        }));
 
         return rankedUsers;
     } catch (error) {

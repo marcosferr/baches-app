@@ -1,0 +1,3 @@
+M	app/ranking/page.tsx
+M	lib/actions/leaderboard-actions.ts
+M	prisma/schema.prisma

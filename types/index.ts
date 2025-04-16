@@ -89,11 +89,11 @@ export interface ReportTimeline {
   id: string;
   reportId: string;
   previousStatus?:
-    | "SUBMITTED"
-    | "PENDING"
-    | "IN_PROGRESS"
-    | "RESOLVED"
-    | "REJECTED";
+  | "SUBMITTED"
+  | "PENDING"
+  | "IN_PROGRESS"
+  | "RESOLVED"
+  | "REJECTED";
   newStatus: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
   changedById: string;
   changedBy?: User;
@@ -164,6 +164,11 @@ export interface LeaderboardCategory {
 }
 
 export const LEADERBOARD_CATEGORIES = {
+  REPORTERO_TOP: {
+    name: "Reportero Top",
+    description: "Mayor número de reportes",
+    icon: "🏆",
+  },
   CAZADOR_DE_CRATERES: {
     name: "Cazador de Cráteres",
     description: "Mayor número de reportes de baches profundos",

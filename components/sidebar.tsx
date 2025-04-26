@@ -13,6 +13,7 @@ import {
   CheckSquare,
   LogOut,
   Globe,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -150,6 +151,18 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === "/ranking"}
+              tooltip="Ranking"
+            >
+              <Link href="/ranking" className="flex items-center gap-2 py-2">
+                <Trophy className="h-5 w-5" />
+                <span>Ranking</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="border-t p-4">

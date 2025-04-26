@@ -46,7 +46,7 @@ export async function getCategoryLeaderboard(category: keyof typeof LEADERBOARD_
 export async function getAllLeaderboards(limit = 5) {
   try {
     const categories = Object.keys(LEADERBOARD_CATEGORIES) as Array<keyof typeof LEADERBOARD_CATEGORIES>;
-    
+
     const leaderboards = await Promise.all(
       categories.map(async (category) => {
         const { entries } = await getCategoryLeaderboard(category, limit);
@@ -139,15 +139,16 @@ export async function updateLeaderboardScores(userId: string) {
       HEROE_DEL_BARRIO: reports.length, // Simplified
       REPORTERO_VELOZ: reports.length, // Simplified
       CARTOGRAFO_URBANO: reports.length, // Simplified
+      REPORTERO_TOP: reports.length,
       MAESTRO_DEL_DETALLE: reports.filter(r => r.description.length > 100).length,
     };
 
     // Update or create leaderboard entries for each category
     const categories = Object.keys(LEADERBOARD_CATEGORIES) as Array<keyof typeof LEADERBOARD_CATEGORIES>;
-    
+
     for (const category of categories) {
       const score = scores[category];
-      
+
       // Get current rank (count of users with higher scores)
       const higherScores = await prisma.leaderboardEntry.count({
         where: {
@@ -160,9 +161,9 @@ export async function updateLeaderboardScores(userId: string) {
           },
         },
       });
-      
+
       const rank = higherScores + 1;
-      
+
       // Update or create entry
       await prisma.leaderboardEntry.upsert({
         where: {
@@ -196,12 +197,12 @@ export async function updateLeaderboardScores(userId: string) {
           score: "desc",
         },
       });
-      
+
       // Update ranks
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         const newRank = i + 1;
-        
+
         if (entry.rank !== newRank) {
           await prisma.leaderboardEntry.update({
             where: {

@@ -64,10 +64,12 @@ export async function getReports(filters?: {
 
     // Query with pagination
     const page = filters?.page || 1;
-    const limit = Math.min(filters?.limit || 10, 50); // Max 50 items per page
-    const skip = (page - 1) * limit;
+    // Special case: if limit is -1, fetch all records without limit
+    const limit = filters?.limit === -1 ? undefined : filters?.limit || 10;
+    const skip = (page - 1) * (limit || 0);
 
-    const reports = await prisma.report.findMany({
+    // Build query options
+    const queryOptions: any = {
       where,
       include: {
         author: {
@@ -87,9 +89,18 @@ export async function getReports(filters?: {
       orderBy: {
         createdAt: "desc",
       },
-      skip,
-      take: limit,
-    });
+    };
+
+    // Add pagination parameters if limit is defined
+    if (skip > 0) {
+      queryOptions.skip = skip;
+    }
+
+    if (limit !== undefined) {
+      queryOptions.take = limit;
+    }
+
+    const reports = await prisma.report.findMany(queryOptions);
 
     // Get total count for pagination
     const total = await prisma.report.count({ where });
@@ -101,9 +112,9 @@ export async function getReports(filters?: {
       reports: reportDTOs,
       pagination: {
         page,
-        limit,
+        limit: limit || total, // If no limit was set, use total count
         total,
-        pages: Math.ceil(total / limit),
+        pages: limit ? Math.ceil(total / limit) : 1, // If no limit, just one page
       },
     };
   } catch (error) {

@@ -69,7 +69,7 @@ export const ApiService = {
         longitude: centerLng,
         radius: radius,
         page: 1,
-        limit: 50,
+        limit: -1, // Use -1 to fetch all records without limit
       });
 
       return response.reports;

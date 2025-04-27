@@ -5,6 +5,5 @@
 - implementar rate-limiter mas robusto
 - implementar logging estructurado
 - Monitoreo de errores
-- crear sistema de badges, gamificacion con badges para los top usuarios
 - agregar pruebas automatizadas
-
+- fetching de baches segun el viewport utilizando filtrado por radio geografico

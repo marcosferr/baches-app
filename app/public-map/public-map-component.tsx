@@ -19,6 +19,10 @@ interface PublicMapComponentProps {
   selectedReport: Report | null;
   mapRef: React.RefObject<any>;
   isLoading?: boolean;
+  hasMoreReports?: boolean;
+  onLoadMore?: () => void;
+  loadedCount?: number;
+  totalCount?: number;
 }
 
 export function PublicMapComponent({
@@ -265,6 +269,14 @@ export function PublicMapComponent({
             <div className="loading-spinner" />
             <p>Cargando reportes...</p>
           </div>
+        </div>
+      )}
+      {/* Pasamos la propiedad onLoadMore desde el componente padre */}
+      {props.hasMoreReports && !isLoading && (
+        <div className="map-load-more">
+          <button className="load-more-button" onClick={props.onLoadMore}>
+            Cargar más reportes ({props.loadedCount} de {props.totalCount})
+          </button>
         </div>
       )}
     </div>

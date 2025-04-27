@@ -361,6 +361,10 @@ export default function PublicMapView() {
           reports={filteredReports}
           onReportSelect={handleReportSelect}
           isLoading={isLoading}
+          hasMoreReports={hasMoreReports}
+          onLoadMore={loadMoreReports}
+          loadedCount={reports.length}
+          totalCount={totalReports}
         />
       );
     }
@@ -383,6 +387,10 @@ export default function PublicMapView() {
         selectedReport={selectedReport}
         mapRef={mapRef}
         isLoading={isLoading}
+        hasMoreReports={hasMoreReports}
+        onLoadMore={loadMoreReports}
+        loadedCount={reports.length}
+        totalCount={totalReports}
       />
     );
   };

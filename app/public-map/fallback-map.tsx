@@ -8,12 +8,20 @@ interface FallbackMapProps {
   reports: Report[];
   onReportSelect: (report: Report) => void;
   isLoading?: boolean;
+  hasMoreReports?: boolean;
+  onLoadMore?: () => void;
+  loadedCount?: number;
+  totalCount?: number;
 }
 
 export function FallbackMap({
   reports,
   onReportSelect,
   isLoading = false,
+  hasMoreReports = false,
+  onLoadMore,
+  loadedCount = 0,
+  totalCount = 0,
 }: FallbackMapProps) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-muted/20">
@@ -79,6 +87,29 @@ export function FallbackMap({
           {!isLoading && reports.length === 0 && (
             <div className="p-4 text-center text-sm text-muted-foreground">
               No hay reportes disponibles
+            </div>
+          )}
+
+          {/* Load more button */}
+          {hasMoreReports && !isLoading && (
+            <div className="mt-4 flex justify-center p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadMore}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
+                    Cargando...
+                  </>
+                ) : (
+                  <>
+                    Cargar más reportes ({loadedCount} de {totalCount})
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>

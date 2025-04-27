@@ -12,6 +12,7 @@ import { RateLimiter } from "@/lib/rate-limiter";
 import { toReportDTO, toArrayDTO } from "@/lib/dto";
 import { checkAndAwardBadges } from "@/lib/badge-service";
 import { updateLeaderboardScores } from "@/lib/leaderboard-service";
+import { updateReportCountRanking } from "@/lib/actions/leaderboard-actions";
 import type { z } from "zod";
 import { Severity, Status } from "@prisma/client";
 
@@ -213,6 +214,9 @@ export async function createReport(data: CreateReportData) {
     // Update leaderboard scores
     await updateLeaderboardScores(session.user.id);
 
+    // Update specific ranking for report count
+    await updateReportCountRanking();
+
     // Notify admins about new report
     const admins = await prisma.user.findMany({
       where: {
@@ -324,9 +328,8 @@ export async function updateReport(
     if (!isAuthor && !isAdmin) {
       throw new Error("You don't have permission to update this report");
     }
-
     // Validate input
-    const validationResult = updateReportSchema.safeParse({ id, ...data });
+    const validationResult = updateReportSchema.safeParse(data);
     if (!validationResult.success) {
       throw new Error(
         Object.values(validationResult.error.flatten().fieldErrors)
@@ -397,9 +400,8 @@ export async function updateReport(
       await createNotification({
         userId: existingReport.authorId,
         title: "Estado del reporte actualizado",
-        message: `Tu reporte en ${
-          existingReport.address || "la ubicación indicada"
-        } ${statusMessage}.`,
+        message: `Tu reporte en ${existingReport.address || "la ubicación indicada"
+          } ${statusMessage}.`,
         type: "REPORT_STATUS",
         relatedId: id,
       });

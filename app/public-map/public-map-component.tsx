@@ -31,6 +31,10 @@ export function PublicMapComponent({
   selectedReport,
   mapRef,
   isLoading = false,
+  hasMoreReports = false,
+  onLoadMore,
+  loadedCount = 0,
+  totalCount = 0,
 }: PublicMapComponentProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
@@ -271,11 +275,11 @@ export function PublicMapComponent({
           </div>
         </div>
       )}
-      {/* Pasamos la propiedad onLoadMore desde el componente padre */}
-      {props.hasMoreReports && !isLoading && (
+      {/* Botón para cargar más reportes */}
+      {hasMoreReports && !isLoading && (
         <div className="map-load-more">
-          <button className="load-more-button" onClick={props.onLoadMore}>
-            Cargar más reportes ({props.loadedCount} de {props.totalCount})
+          <button className="load-more-button" onClick={onLoadMore}>
+            Cargar más reportes ({loadedCount} de {totalCount})
           </button>
         </div>
       )}

@@ -118,6 +118,9 @@ export function ReportListItem({
             src={report.picture || "/placeholder.svg"}
             alt="Bache"
             className="h-full w-full object-cover"
+            loading="lazy"
+            width="64"
+            height="64"
           />
         </div>
         <div className="flex-1">

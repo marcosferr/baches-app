@@ -52,17 +52,29 @@ export default function PublicMapView() {
   const mapRef = useRef<any>(null);
   const leafletLoadedRef = useRef(false);
 
-  // Fetch reports
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreReports, setHasMoreReports] = useState(true);
+  const [totalReports, setTotalReports] = useState(0);
+  const pageSize = 20; // Number of reports per page
+
+  // Fetch reports with pagination
   useEffect(() => {
     const fetchReports = async () => {
       setIsLoading(true);
       try {
         // Exclude SUBMITTED reports from public map
-        const fetchedReports = await ApiService.getReports({
+        const response = await ApiService.getReportsWithPagination({
           status: ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"],
+          page: 1,
+          limit: pageSize,
         });
-        setReports(fetchedReports);
-        setFilteredReports(fetchedReports);
+
+        setReports(response.reports);
+        setFilteredReports(response.reports);
+        setTotalReports(response.pagination.total);
+        setHasMoreReports(response.pagination.page < response.pagination.pages);
+        setCurrentPage(1);
       } catch (error) {
         toast({
           title: "Error",
@@ -77,6 +89,55 @@ export default function PublicMapView() {
 
     fetchReports();
   }, [toast]);
+
+  // Function to load more reports
+  const loadMoreReports = async () => {
+    if (!hasMoreReports || isLoading) return;
+
+    const nextPage = currentPage + 1;
+    setIsLoading(true);
+
+    try {
+      const response = await ApiService.getReportsWithPagination({
+        status: ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"],
+        page: nextPage,
+        limit: pageSize,
+      });
+
+      // Append new reports to existing ones
+      setReports((prevReports) => [...prevReports, ...response.reports]);
+      // Update filtered reports based on current filters
+      setFilteredReports((prevFiltered) => {
+        const newReports = response.reports.filter((report) => {
+          const statusMatch =
+            (report.status === "PENDING" && filters.pending) ||
+            (report.status === "IN_PROGRESS" && filters.in_progress) ||
+            (report.status === "RESOLVED" && filters.resolved);
+
+          const severityMatch =
+            (report.severity === "LOW" && filters.low) ||
+            (report.severity === "MEDIUM" && filters.medium) ||
+            (report.severity === "HIGH" && filters.high);
+
+          return statusMatch && severityMatch;
+        });
+
+        return [...prevFiltered, ...newReports];
+      });
+
+      setCurrentPage(nextPage);
+      setHasMoreReports(nextPage < response.pagination.pages);
+    } catch (error) {
+      console.error("Error loading more reports:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar más reportes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load Leaflet library
   useEffect(() => {
@@ -440,6 +501,29 @@ export default function PublicMapView() {
                           No se encontraron reportes con los filtros
                           seleccionados.
                         </p>
+                      </div>
+                    )}
+
+                    {/* Load more button */}
+                    {hasMoreReports && (
+                      <div className="mt-4 flex justify-center">
+                        <Button
+                          variant="outline"
+                          onClick={loadMoreReports}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
+                              Cargando...
+                            </>
+                          ) : (
+                            <>
+                              Cargar más reportes ({reports.length} de{" "}
+                              {totalReports})
+                            </>
+                          )}
+                        </Button>
                       </div>
                     )}
                   </div>

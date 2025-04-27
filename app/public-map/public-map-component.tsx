@@ -165,7 +165,7 @@ export function PublicMapComponent({
           </div>
         </div>
         <div class="popup-image">
-          <img src="${report.picture}" alt="Imagen del bache" />
+          <img src="${report.picture}" alt="Imagen del bache" loading="lazy" />
         </div>
         <p class="popup-description">${report.description.substring(0, 60)}${
         report.description.length > 60 ? "..." : ""

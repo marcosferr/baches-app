@@ -61,6 +61,7 @@ export const ApiService = {
           ) / 2;
       }
 
+      // Use a reasonable page size to prevent memory issues
       const response = await getReports({
         status: filters?.status?.map((s) => s.toUpperCase()) as any,
         severity: filters?.severity?.map((s) => s.toUpperCase()) as any,
@@ -69,12 +70,50 @@ export const ApiService = {
         longitude: centerLng,
         radius: radius,
         page: 1,
-        limit: -1, // Use -1 to fetch all records without limit
+        limit: 100, // Use a reasonable limit instead of unlimited
       });
 
       return response.reports;
     } catch (error) {
       console.error("Error getting reports:", error);
+      throw error;
+    }
+  },
+
+  // Get reports with pagination information
+  getReportsWithPagination: async (
+    filters?: ReportFilterOptions & { page?: number; limit?: number }
+  ) => {
+    try {
+      // Updated the center calculation and radius for geographic filtering
+      let centerLat, centerLng, radius;
+
+      if (filters?.bounds) {
+        centerLat = (filters.bounds.north + filters.bounds.south) / 2;
+        centerLng = (filters.bounds.east + filters.bounds.west) / 2;
+
+        // Calculate radius as half the maximum dimension
+        radius =
+          Math.max(
+            Math.abs(filters.bounds.north - filters.bounds.south),
+            Math.abs(filters.bounds.east - filters.bounds.west)
+          ) / 2;
+      }
+
+      const response = await getReports({
+        status: filters?.status?.map((s) => s.toUpperCase()) as any,
+        severity: filters?.severity?.map((s) => s.toUpperCase()) as any,
+        userId: filters?.userId,
+        latitude: centerLat,
+        longitude: centerLng,
+        radius: radius,
+        page: filters?.page || 1,
+        limit: filters?.limit || 20, // Default to 20 items per page
+      });
+
+      return response; // Return full response with pagination info
+    } catch (error) {
+      console.error("Error getting paginated reports:", error);
       throw error;
     }
   },

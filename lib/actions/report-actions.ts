@@ -65,22 +65,37 @@ export async function getReports(filters?: {
 
     // Query with pagination
     const page = filters?.page || 1;
-    // Special case: if limit is -1, fetch all records without limit
-    const limit = filters?.limit === -1 ? undefined : filters?.limit || 10;
-    const skip = (page - 1) * (limit || 0);
+    // Use a reasonable default limit to prevent memory issues
+    // Special case: if limit is -1, use a higher but still safe limit (100)
+    const limit = filters?.limit === -1 ? 100 : filters?.limit || 20;
+    const skip = (page - 1) * limit;
 
-    // Build query options
+    // Build query options with optimized data selection
     const queryOptions: any = {
       where,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        severity: true,
+        latitude: true,
+        longitude: true,
+        address: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        // Only include a thumbnail URL for the picture, not the full data
+        picture: true,
+        authorId: true,
+        // Select minimal author information
         author: {
           select: {
             id: true,
             name: true,
-            email: true,
+            // Exclude email to reduce data size
             avatar: true,
           },
         },
+        // Just get the count of comments, not the comments themselves
         _count: {
           select: {
             comments: true,
@@ -400,8 +415,9 @@ export async function updateReport(
       await createNotification({
         userId: existingReport.authorId,
         title: "Estado del reporte actualizado",
-        message: `Tu reporte en ${existingReport.address || "la ubicación indicada"
-          } ${statusMessage}.`,
+        message: `Tu reporte en ${
+          existingReport.address || "la ubicación indicada"
+        } ${statusMessage}.`,
         type: "REPORT_STATUS",
         relatedId: id,
       });

@@ -68,29 +68,43 @@ async function getReports(request: Request) {
     // Query with pagination
     const page = Number.parseInt(searchParams.get("page") || "1");
 
-    // Parse limit parameter - special value "-1" means no limit
-    let limit: number | undefined;
+    // Parse limit parameter - special value "-1" means use a higher but safe limit
+    let limit: number;
     const limitParam = searchParams.get("limit");
     if (limitParam === "-1") {
-      limit = undefined; // No limit
+      limit = 100; // Use a higher but still safe limit
     } else {
-      limit = Number.parseInt(limitParam || "10");
+      limit = Number.parseInt(limitParam || "20");
     }
 
     const skip = (page - 1) * (limit || 0);
 
-    // Build query options
+    // Build query options with optimized data selection
     const queryOptions: any = {
       where,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        severity: true,
+        latitude: true,
+        longitude: true,
+        address: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        // Only include a thumbnail URL for the picture, not the full data
+        picture: true,
+        authorId: true,
+        // Select minimal author information
         author: {
           select: {
             id: true,
             name: true,
-            email: true,
+            // Exclude email to reduce data size
             avatar: true,
           },
         },
+        // Just get the count of comments, not the comments themselves
         _count: {
           select: {
             comments: true,

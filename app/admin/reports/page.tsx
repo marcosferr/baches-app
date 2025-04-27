@@ -49,21 +49,34 @@ export default function AdminReportsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreReports, setHasMoreReports] = useState(true);
+  const [totalReports, setTotalReports] = useState(0);
+  const pageSize = 20; // Number of reports per page
+
+  // Fetch reports with pagination
   useEffect(() => {
     async function fetchReports() {
       try {
         setLoading(true);
+        setReports([]); // Clear reports when changing tab
+        setCurrentPage(1); // Reset to first page when changing tab
 
         const statusFilter =
           activeTab !== "all"
             ? [activeTab as "pending" | "in_progress" | "resolved" | "rejected"]
             : undefined;
 
-        const fetchedReports = await ApiService.getReports({
+        const response = await ApiService.getReportsWithPagination({
           status: statusFilter,
+          page: 1,
+          limit: pageSize,
         });
 
-        setReports(fetchedReports);
+        setReports(response.reports);
+        setTotalReports(response.pagination.total);
+        setHasMoreReports(response.pagination.page < response.pagination.pages);
       } catch (error) {
         console.error("Error fetching reports:", error);
       } finally {
@@ -73,6 +86,36 @@ export default function AdminReportsPage() {
 
     fetchReports();
   }, [activeTab]);
+
+  // Function to load more reports
+  const loadMoreReports = async () => {
+    if (!hasMoreReports || loading) return;
+
+    const nextPage = currentPage + 1;
+    setLoading(true);
+
+    try {
+      const statusFilter =
+        activeTab !== "all"
+          ? [activeTab as "pending" | "in_progress" | "resolved" | "rejected"]
+          : undefined;
+
+      const response = await ApiService.getReportsWithPagination({
+        status: statusFilter,
+        page: nextPage,
+        limit: pageSize,
+      });
+
+      // Append new reports to existing ones
+      setReports((prevReports) => [...prevReports, ...response.reports]);
+      setCurrentPage(nextPage);
+      setHasMoreReports(nextPage < response.pagination.pages);
+    } catch (error) {
+      console.error("Error loading more reports:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
@@ -416,6 +459,28 @@ export default function AdminReportsPage() {
                   ))}
                 </TableBody>
               </Table>
+            )}
+
+            {/* Load more button */}
+            {hasMoreReports && !loading && (
+              <div className="flex justify-center p-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={loadMoreReports}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
+                      Cargando...
+                    </>
+                  ) : (
+                    <>
+                      Cargar más reportes ({reports.length} de {totalReports})
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

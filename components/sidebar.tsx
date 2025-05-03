@@ -14,6 +14,7 @@ import {
   LogOut,
   Globe,
   Trophy,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,6 +65,11 @@ export function AppSidebar({ userRole = "citizen" }: SidebarProps) {
       title: "Mis Reportes",
       icon: FileText,
       href: "/my-reports",
+    },
+    {
+      title: "Postales de mi Ciudad",
+      icon: Image,
+      href: "/postals",
     },
     {
       title: "Notificaciones",

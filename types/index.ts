@@ -89,11 +89,11 @@ export interface ReportTimeline {
   id: string;
   reportId: string;
   previousStatus?:
-  | "SUBMITTED"
-  | "PENDING"
-  | "IN_PROGRESS"
-  | "RESOLVED"
-  | "REJECTED";
+    | "SUBMITTED"
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "RESOLVED"
+    | "REJECTED";
   newStatus: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
   changedById: string;
   changedBy?: User;
@@ -210,3 +210,18 @@ export const LEADERBOARD_CATEGORIES = {
     icon: "🔍",
   },
 } as const;
+
+// Postal related types
+export interface CreatePostalDTO {
+  name: string;
+  points: [number, number][];
+}
+
+export interface Postal {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: Date;
+  polygon: [number, number][];
+  reports?: Report[];
+}

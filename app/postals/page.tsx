@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -27,6 +27,8 @@ export default function PostalsPage() {
   const [polygonPoints, setPolygonPoints] = useState<[number, number][]>([]);
   const [area, setArea] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [mapKey, setMapKey] = useState<number>(Date.now());
+  const mapInitializedRef = useRef<boolean>(false);
 
   // Maximum area in square meters (1 km²)
   const MAX_AREA = 300000;
@@ -35,6 +37,67 @@ export default function PostalsPage() {
     setPolygonPoints([]);
     setArea(0);
   };
+
+  const handleReloadMap = () => {
+    // Reset the initialization flag to allow reinitialization
+    mapInitializedRef.current = false;
+    setMapKey(Date.now());
+  };
+
+  // Ensure map is properly initialized when component mounts
+  useEffect(() => {
+    // Prevent multiple initializations
+    if (mapInitializedRef.current) {
+      return;
+    }
+    mapInitializedRef.current = true;
+
+    // Preload Leaflet resources first
+    if (typeof window !== "undefined") {
+      // Check if Leaflet CSS is already loaded
+      const existingLink = document.querySelector('link[href*="leaflet"]');
+      if (!existingLink) {
+        // Preload CSS
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        link.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
+        link.crossOrigin = "";
+        document.head.appendChild(link);
+      }
+
+      // Check if Leaflet script is already loaded
+      const existingScript = document.querySelector('script[src*="leaflet"]');
+      if (!existingScript && !window.L) {
+        // Preload JS
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.integrity =
+          "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+        script.crossOrigin = "";
+
+        // Wait for script to load before initializing map
+        script.onload = () => {
+          // Delay slightly to ensure DOM is ready
+          setTimeout(() => {
+            setMapKey(Date.now());
+          }, 100);
+        };
+
+        document.head.appendChild(script);
+      } else {
+        // If Leaflet is already loaded, initialize map with a slight delay
+        setTimeout(() => {
+          setMapKey(Date.now());
+        }, 100);
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      mapInitializedRef.current = false;
+    };
+  }, []);
 
   const handleGenerateReport = () => {
     if (polygonPoints.length < 3) {
@@ -136,6 +199,9 @@ export default function PostalsPage() {
                   <Button variant="outline" onClick={handleReset}>
                     Reiniciar
                   </Button>
+                  <Button variant="outline" onClick={handleReloadMap}>
+                    Recargar Mapa
+                  </Button>
                   <Button
                     onClick={handleGenerateReport}
                     disabled={
@@ -151,6 +217,7 @@ export default function PostalsPage() {
 
               <div className="h-[600px] w-full rounded-md border relative z-0">
                 <PostalMap
+                  key={mapKey}
                   onPointsChange={setPolygonPoints}
                   onAreaChange={setArea}
                   points={polygonPoints}

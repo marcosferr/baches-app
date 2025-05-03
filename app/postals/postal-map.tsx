@@ -20,47 +20,107 @@ export function PostalMap({
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const polygonRef = useRef<any>(null);
+  const leafletLoadingRef = useRef<boolean>(false);
 
   const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize the map
   useEffect(() => {
-    if (typeof window === "undefined" || !mapRef.current || isMapInitialized) {
-      return;
-    }
+    // Set loading state
+    setIsLoading(true);
 
-    // Check if Leaflet is already loaded
-    if (window.L) {
-      initializeMap();
-      return;
-    }
+    // Ensure the map container is rendered before attempting to initialize
+    const checkMapContainer = () => {
+      if (typeof window === "undefined") {
+        return false;
+      }
 
-    // Check if Leaflet script is already being loaded
-    const existingScript = document.querySelector('script[src*="leaflet"]');
-    if (existingScript) {
-      existingScript.addEventListener("load", initializeMap);
-      return;
-    }
+      if (!mapRef.current) {
+        // If map container is not ready yet, retry after a short delay
+        setTimeout(() => {
+          if (!isMapInitialized && !leafletLoadingRef.current) {
+            loadAndInitializeMap();
+          }
+        }, 100);
+        return false;
+      }
 
-    // Load Leaflet script dynamically
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
-    script.crossOrigin = "";
-    script.onload = initializeMap;
-    document.head.appendChild(script);
+      return true;
+    };
 
-    // Check if Leaflet CSS is already loaded
-    const existingLink = document.querySelector('link[href*="leaflet"]');
-    if (!existingLink) {
-      // Load Leaflet CSS
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      link.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
-      link.crossOrigin = "";
-      document.head.appendChild(link);
-    }
+    const loadAndInitializeMap = async () => {
+      // Check if already initialized or in the process of initializing
+      if (isMapInitialized || leafletLoadingRef.current) {
+        return;
+      }
+
+      // Check if map container is ready
+      if (!checkMapContainer()) {
+        return;
+      }
+
+      // Prevent multiple initialization attempts
+      if (leafletLoadingRef.current) return;
+      leafletLoadingRef.current = true;
+
+      try {
+        // Check if Leaflet is already loaded
+        if (window.L) {
+          // Delay initialization slightly to ensure DOM is fully ready
+          setTimeout(initializeMap, 100);
+          return;
+        }
+
+        // Check if Leaflet script is already being loaded
+        const existingScript = document.querySelector('script[src*="leaflet"]');
+        if (existingScript) {
+          existingScript.addEventListener("load", () => {
+            // Wait a bit to ensure Leaflet is fully initialized
+            setTimeout(initializeMap, 200);
+          });
+          return;
+        }
+
+        // Load Leaflet CSS if not already loaded
+        const existingLink = document.querySelector('link[href*="leaflet"]');
+        if (!existingLink) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          link.integrity =
+            "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
+          link.crossOrigin = "";
+          document.head.appendChild(link);
+        }
+
+        // Load Leaflet script dynamically
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.integrity =
+          "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+        script.crossOrigin = "";
+
+        // Create a promise to wait for script load
+        await new Promise<void>((resolve) => {
+          script.onload = () => {
+            // Wait a bit to ensure Leaflet is fully initialized
+            setTimeout(() => {
+              initializeMap();
+              resolve();
+            }, 200);
+          };
+          document.head.appendChild(script);
+        });
+      } catch (error) {
+        console.error("Error loading Leaflet:", error);
+        setIsLoading(false);
+        leafletLoadingRef.current = false;
+      }
+    };
+
+    // Start the initialization process with a slight delay to ensure DOM is ready
+    setTimeout(loadAndInitializeMap, 100);
 
     return () => {
       // Clean up map instance when component unmounts
@@ -68,8 +128,10 @@ export function PostalMap({
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      setIsMapInitialized(false);
+      leafletLoadingRef.current = false;
     };
-  }, [isMapInitialized]);
+  }, []);
 
   // Update polygon when points change
   useEffect(() => {
@@ -80,7 +142,29 @@ export function PostalMap({
 
   // Initialize the map
   const initializeMap = () => {
+    // Prevent initializing if already initialized
+    if (isMapInitialized && mapInstanceRef.current) {
+      leafletLoadingRef.current = false;
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      if (!window.L) {
+        // Don't log an error, just silently return and let the retry mechanism handle it
+        setIsLoading(false);
+        leafletLoadingRef.current = false;
+        return;
+      }
+
+      // Double-check map container is available (should never happen due to earlier check)
+      if (!mapRef.current) {
+        // Don't log an error, just silently return and let the retry mechanism handle it
+        setIsLoading(false);
+        leafletLoadingRef.current = false;
+        return;
+      }
+
       const L = window.L;
 
       // Check if the map container already has a Leaflet instance
@@ -98,21 +182,43 @@ export function PostalMap({
       }
 
       // Create map instance with default coordinates for Encarnación, Paraguay
-      const map = L.map(mapRef.current).setView([-27.3364, -55.8675], 14);
-      mapInstanceRef.current = map;
+      try {
+        const map = L.map(mapRef.current).setView([-27.3364, -55.8675], 14);
+        mapInstanceRef.current = map;
 
-      // Add tile layer
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+        // Add tile layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
 
-      // Add click handler to add markers
-      map.on("click", handleMapClick);
+        // Add click handler to add markers
+        map.on("click", handleMapClick);
 
-      setIsMapInitialized(true);
+        // Set states after successful initialization
+        setIsMapInitialized(true);
+        setIsLoading(false);
+        leafletLoadingRef.current = false;
+      } catch (mapError) {
+        console.error("Error creating map instance:", mapError);
+        // If map creation fails, retry after a short delay, but only if not already initialized
+        if (!isMapInitialized) {
+          setTimeout(() => {
+            if (!isMapInitialized) {
+              setIsLoading(true);
+              leafletLoadingRef.current = false;
+              initializeMap();
+            }
+          }, 500);
+        } else {
+          setIsLoading(false);
+          leafletLoadingRef.current = false;
+        }
+      }
     } catch (error) {
       console.error("Error initializing map:", error);
+      setIsLoading(false);
+      leafletLoadingRef.current = false;
     }
   };
 
@@ -239,5 +345,17 @@ export function PostalMap({
     }
   }, [points]);
 
-  return <div ref={mapRef} className="h-full w-full relative z-0" />;
+  return (
+    <div className="h-full w-full relative z-0">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-sm text-muted-foreground">Cargando mapa...</p>
+          </div>
+        </div>
+      )}
+      <div ref={mapRef} className="h-full w-full relative z-0" />
+    </div>
+  );
 }

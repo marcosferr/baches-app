@@ -50,13 +50,24 @@ export default function MyReportsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  // Fetch user reports on component mount
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreReports, setHasMoreReports] = useState(true);
+  const [totalReports, setTotalReports] = useState(0);
+  const pageSize = 20; // Number of reports per page
+
+  // Fetch user reports on component mount or when tab changes
   useEffect(() => {
     async function fetchReports() {
       try {
         setLoading(true);
-        const data = await getUserReports();
-        setReports(data);
+        setReports([]); // Clear reports when first loading
+        setCurrentPage(1); // Reset to first page
+
+        const response = await getUserReports(1, pageSize);
+        setReports(response.reports);
+        setTotalReports(response.pagination.total);
+        setHasMoreReports(response.pagination.page < response.pagination.pages);
       } catch (error) {
         console.error("Error fetching reports:", error);
         toast({
@@ -71,7 +82,33 @@ export default function MyReportsPage() {
     }
 
     fetchReports();
-  }, [toast]);
+  }, [toast, pageSize, activeTab]);
+
+  // Function to load more reports
+  const loadMoreReports = async () => {
+    if (!hasMoreReports || loading) return;
+
+    const nextPage = currentPage + 1;
+    setLoading(true);
+
+    try {
+      const response = await getUserReports(nextPage, pageSize);
+
+      // Append new reports to existing ones
+      setReports((prevReports) => [...prevReports, ...response.reports]);
+      setCurrentPage(nextPage);
+      setHasMoreReports(nextPage < response.pagination.pages);
+    } catch (error) {
+      console.error("Error loading more reports:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar más reportes.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter reports based on search query and active tab
   const filteredReports = reports.filter((report) => {
@@ -196,7 +233,7 @@ export default function MyReportsPage() {
                   onClick={() => setActiveTab("all")}
                 >
                   <span>Todos</span>
-                  <Badge variant="secondary">{reports.length}</Badge>
+                  <Badge variant="secondary">{totalReports}</Badge>
                 </Button>
 
                 <Button
@@ -308,6 +345,28 @@ export default function MyReportsPage() {
                   )}
                 </TableBody>
               </Table>
+
+              {/* Load more button */}
+              {hasMoreReports && !loading && (
+                <div className="mt-4 flex justify-center p-4">
+                  <Button
+                    variant="outline"
+                    onClick={loadMoreReports}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-primary"></div>
+                        Cargando...
+                      </>
+                    ) : (
+                      <>
+                        Cargar más reportes ({reports.length} de {totalReports})
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

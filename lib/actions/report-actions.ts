@@ -278,7 +278,7 @@ export async function createReport(data: CreateReportData) {
   }
 }
 
-export async function getUserReports() {
+export async function getUserReports(page = 1, limit = 20) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -286,6 +286,10 @@ export async function getUserReports() {
       throw new Error("Unauthorized");
     }
 
+    // Calculate skip for pagination
+    const skip = (page - 1) * limit;
+
+    // Query with pagination
     const reports = await prisma.report.findMany({
       where: {
         authorId: session.user.id,
@@ -300,9 +304,26 @@ export async function getUserReports() {
           },
         },
       },
+      skip: skip,
+      take: limit,
     });
 
-    return reports;
+    // Get total count for pagination
+    const total = await prisma.report.count({
+      where: {
+        authorId: session.user.id,
+      },
+    });
+
+    return {
+      reports,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
   } catch (error) {
     console.error("[GET_USER_REPORTS]", error);
     throw new Error("Failed to get user reports");

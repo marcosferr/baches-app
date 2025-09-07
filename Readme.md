@@ -126,6 +126,7 @@ yarn dev
 | `NEXTAUTH_URL`       | URL base de la aplicación                     | `http://localhost:3000` | Sí        |
 | `NEXTAUTH_SECRET`    | Secreto para firmar cookies de sesión         | -                       | Sí        |
 | `JWT_SECRET`         | Secreto para firmar tokens JWT                | -                       | Sí        |
+| `EXTERNAL_API_KEY`   | API Key para sistema de detección externo     | -                       | No        |
 | `DEBUG_DISABLE_AUTH` | Deshabilita la autenticación para desarrollo  | `false`                 | No        |
 
 ### Configuración para Diferentes Entornos
@@ -137,6 +138,7 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/baches_dev"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="tu-secreto-desarrollo"
 JWT_SECRET="tu-jwt-secreto-desarrollo"
+EXTERNAL_API_KEY="tu-api-key-desarrollo"
 DEBUG_DISABLE_AUTH=true
 ```
 
@@ -147,6 +149,7 @@ DATABASE_URL="postgresql://usuario:contraseña@host:puerto/baches_prod"
 NEXTAUTH_URL="https://tu-dominio.com"
 NEXTAUTH_SECRET="tu-secreto-produccion-seguro"
 JWT_SECRET="tu-jwt-secreto-produccion-seguro"
+EXTERNAL_API_KEY="tu-api-key-produccion-segura"
 DEBUG_DISABLE_AUTH=false
 ```
 
@@ -531,6 +534,61 @@ Representa las preferencias de notificación de los usuarios.
   "success": true
 }
 ```
+
+#### Crear Reporte desde Sistema Externo
+
+- **URL**: `/api/reports/external`
+- **Método**: `POST`
+- **Descripción**: Crea un nuevo reporte desde un sistema de detección automático externo
+- **Headers**:
+  - `Content-Type: application/json`
+  - `x-api-key: YOUR_API_KEY` (requerido, configurar en variable de entorno `EXTERNAL_API_KEY`)
+- **Cuerpo**:
+
+```json
+{
+  "image_id": "550e8400-e29b-41d4-a716-446655440000",
+  "image_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "latitude": 19.4326,
+  "longitude": -99.1332,
+  "detected_damages": "[{\"class\":\"Potholes\",\"confidence\":0.85,\"bbox\":[100,150,200,250]}]",
+  "timestamp": "2024-09-07T10:30:00Z",
+  "confidence_scores": "[0.85,0.72]",
+  "address": "Av. Insurgentes Sur 123, Ciudad de México"
+}
+```
+
+- **Campos requeridos**: `image_id`, `image_base64`, `latitude`, `longitude`, `detected_damages`
+- **Campos opcionales**: `timestamp`, `confidence_scores`, `address`
+- **Autenticación**: API Key requerida
+- **Respuesta**:
+
+```json
+{
+  "success": true,
+  "report": {
+    "id": "clx123abc456def",
+    "status": "SUBMITTED",
+    "severity": "HIGH",
+    "latitude": 19.4326,
+    "longitude": -99.1332,
+    "createdAt": "2024-09-07T10:30:00Z"
+  },
+  "detection_metadata": {
+    "image_id": "550e8400-e29b-41d4-a716-446655440000",
+    "damage_count": 2,
+    "damage_types": ["Potholes", "Longitudinal Crack"],
+    "avg_confidence": 0.785,
+    "timestamp": "2024-09-07T10:30:00Z"
+  }
+}
+```
+
+- **Notas**:
+  - La imagen debe enviarse como string base64 (con o sin prefijo data:image/)
+  - La gravedad se determina automáticamente basado en la confianza de detección
+  - Se crea automáticamente un usuario del sistema externo si no existe
+  - Los administradores reciben notificaciones automáticamente
 
 ### Comentarios
 

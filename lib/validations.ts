@@ -62,3 +62,15 @@ export const contactFormSchema = z.object({
     .min(10, "El mensaje debe tener al menos 10 caracteres")
     .max(500, "El mensaje no puede exceder los 500 caracteres"),
 });
+
+// External report validations
+export const createExternalReportSchema = z.object({
+  image_id: z.string().min(1, "El ID de imagen es requerido"),
+  image_base64: z.string().min(1, "La imagen en base64 es requerida"),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  detected_damages: z.string().min(1, "Los daños detectados son requeridos"), // JSON string
+  timestamp: z.string().datetime().optional(),
+  confidence_scores: z.string().optional(), // JSON string
+  address: z.string().optional(),
+});

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createExternalReportSchema } from "@/lib/validations";
 import { createNotification } from "@/lib/notification-service";
 import { sendReportNotificationEmail } from "@/lib/email-service";
+import { hash } from "bcrypt";
 
 // Helper function to validate and format base64 image
 function validateBase64Image(base64String: string): string {
@@ -142,11 +143,12 @@ async function createExternalReport(request: Request) {
 
     if (!externalUser) {
       // Create external system user if it doesn't exist
+      const hashedPassword = await hash("external-system-password", 12);
       externalUser = await prisma.user.create({
         data: {
           name: "Sistema de Detección Externo",
           email: "external-system@baches-app.com",
-          password: "external-system-password", // This should be hashed in production
+          password: hashedPassword,
           role: "CITIZEN",
         },
       });
